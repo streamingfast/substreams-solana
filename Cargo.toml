@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "core",
+]
+
+[profile.release]
+lto = true
+opt-level = 's'
+strip = "debuginfo"

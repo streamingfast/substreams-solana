@@ -1,0 +1,23 @@
+[package]
+name = "substreams-solana"
+version = "0.1.0"
+edition = "2021"
+description = "Substreams development kit for Solana chains, contains Rust Firehose Block model and helpers."
+homepage = "https://substreams.streamingfast.io/"
+repository = "https://github.com/streamingfast/substreams-solana/tree/develop/core"
+license = "Apache-2.0"
+readme = "../README.md"
+keywords = [ "substreams", "solana", "streamingfast", "firehose", "thegraph"]
+categories = ["wasm"]
+rust-version = "1.60"
+
+[dependencies]
+prost = { version = "0.10.1" }
+prost-types = "0.10.1"
+substreams = { version = "0.0.12" }
+
+[build-dependencies]
+prost-build = "0.10.1"
+
+[dev-dependencies]
+anyhow = "1"
