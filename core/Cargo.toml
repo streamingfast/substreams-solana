@@ -9,7 +9,7 @@ license = "Apache-2.0"
 readme = "../README.md"
 keywords = [ "substreams", "solana", "streamingfast", "firehose", "thegraph"]
 categories = ["wasm"]
-rust-version = "1.60"
+rust-version = "1.64"
 
 [dependencies]
 prost = { version = "0.11" }
