@@ -1,0 +1,20 @@
+[package]
+name = "substreams-solana-macro"
+version = "0.1.0"
+edition = "2018"
+description = "Substreams development kit for Solana chains, contains helpful macros"
+authors = ["StreamingFast Contributors <team@streamingfast.io>"]
+license = "Apache-2.0"
+homepage = "https://substreams.streamingfast.io/"
+repository = "https://github.com/streamingfast/substreams-rs"
+readme = "../README.md"
+keywords = [ "substreams", "streamingfast", "firehose", "thegraph", "macros"]
+categories = ["api-bindings", "external-ffi-bindings", "wasm"]
+rust-version = "1.60"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+bs58 = "0.4.0"
+

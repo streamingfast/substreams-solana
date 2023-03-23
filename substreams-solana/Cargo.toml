@@ -1,0 +1,17 @@
+[package]
+name = "substreams-solana"
+version = "0.9.0"
+edition = "2021"
+description = "Substreams development kit for Solana chains, contains Firehose Block model and helpers."
+homepage = "https://substreams.streamingfast.io/"
+repository = "https://github.com/streamingfast/substreams-solana/tree/develop/substreams-solana"
+license = "Apache-2.0"
+readme = "../README.md"
+keywords = [ "substreams", "solana", "streamingfast", "firehose", "thegraph"]
+categories = ["api-bindings", "external-ffi-bindings", "wasm"]
+rust-version = "1.60"
+
+[dependencies]
+substreams = "^0.5.0"
+substreams-solana-macro = { version = "0.1.0", path = "../macro" }
+substreams-solana-core = { version = "0.1.0", path = "../core" }
