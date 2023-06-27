@@ -1,5 +1,4 @@
 use crate::{pb::sol::v1 as pb};
-use bs58;
 
 impl pb::Block {
     /// Iterates over successful transactions in given block.
@@ -27,6 +26,23 @@ impl pb::ConfirmedTransaction {
                 transaction: trx,
                 instruction: inst,
             })))
+    }
+
+    pub fn meta(&self) -> Option<&pb::ConfirmedTransaction> {
+        if self.meta.is_none() || self.meta.as_ref().unwrap().meta().is_none() {
+            return None
+        }
+
+        return Some(self)
+    }
+}
+
+impl pb::TransactionStatusMeta {
+    pub fn meta(&self) -> Option<&pb::TransactionStatusMeta> {
+        if self.err.is_some() || self.inner_instructions_none {
+            return None
+        }
+        return Some(self)
     }
 }
 
