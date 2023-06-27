@@ -6,7 +6,7 @@ Substreams development kit for Solana chains, contains Rust Firehose Block model
 
 ```toml
 [package]
-name = "substreams-acme"
+name = "substreams-solana"
 version = "0.1.0"
 
 [lib]
