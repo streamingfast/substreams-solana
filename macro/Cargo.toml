@@ -1,6 +1,6 @@
 [package]
 name = "substreams-solana-macro"
-version = "0.1.0"
+version = "0.10.1"
 edition = "2018"
 description = "Substreams development kit for Solana chains, contains helpful macros"
 authors = ["StreamingFast Contributors <team@streamingfast.io>"]
@@ -17,4 +17,3 @@ proc-macro = true
 
 [dependencies]
 bs58 = "0.4.0"
-
