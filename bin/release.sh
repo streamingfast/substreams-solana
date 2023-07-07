@@ -72,6 +72,8 @@ main() {
     args="--dry-run $args"
   fi
 
+  #cargo publish $args --target wasm32-unknown-unknown -p substreams-macro
+  cargo publish $args --target wasm32-unknown-unknown -p substreams-solana-core
   cargo publish $args --target wasm32-unknown-unknown -p substreams-solana
 }
 
