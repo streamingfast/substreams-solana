@@ -1,4 +1,4 @@
-use crate::{pb::sol::v1 as pb};
+use crate::{pb::sf::solana::r#type::v1 as pb};
 
 impl pb::Block {
     /// Iterates over successful transactions in given block.
@@ -80,7 +80,7 @@ impl InstructionView<'_>{
 
 #[cfg(test)]
 mod tests {
-    use crate::{pb::sol::v1 as pb};
+    use crate::{pb::sf::solana::r#type::v1 as pb};
 
     #[test]
     fn it_iterates_over_successful_transaction() {
