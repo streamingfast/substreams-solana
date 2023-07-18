@@ -10,6 +10,17 @@ impl pb::Block {
             false
         })
     }
+
+    /// Iterates over successful transactions in given block and take ownership.
+    pub fn transactions_owned(self) -> impl Iterator<Item = pb::ConfirmedTransaction> {
+        self.transactions.into_iter().filter(|trx| -> bool {
+            if let Some(meta) = &trx.meta {
+                return meta.err.is_none()
+            }
+            false
+        })
+    }
+
     /// Iterates over instructions of successful transactions in given block.
     pub fn instructions(&self) -> impl Iterator<Item = InstructionView> {
         self.transactions().map(|trx| trx.instructions()).flatten()
