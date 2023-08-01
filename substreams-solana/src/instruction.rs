@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use {
     crate::option::COption,
     std::convert::TryInto,
@@ -460,10 +461,10 @@ pub enum TokenInstruction<'a> {
 
 impl<'a> TokenInstruction<'a> {
     pub fn unpack(input: &'a [u8]) -> Result<Self, Error> {
-        let (&tag, rest) = input.split_first().ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+        let (&tag, rest) = input.split_first().ok_or(anyhow!("Invalid Instruction"))?;
         Ok(match tag {
             0 => {
-                let (&decimals, rest) = rest.split_first().ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                let (&decimals, rest) = rest.split_first().ok_or(anyhow!("Invalid Instruction - 0"))?;
                 let (mint_authority, rest) = Self::unpack_pubkey(rest)?;
                 let (freeze_authority, _rest) = Self::unpack_pubkey_option(rest)?;
                 Self::InitializeMint {
@@ -474,7 +475,7 @@ impl<'a> TokenInstruction<'a> {
             }
             1 => Self::InitializeAccount,
             2 => {
-                let &m = rest.get(0).ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                let &m = rest.get(0).ok_or(anyhow!("Invalid Instruction - 2"))?;
                 Self::InitializeMultisig { m }
             }
             3 | 4 | 7 | 8 => {
@@ -482,7 +483,7 @@ impl<'a> TokenInstruction<'a> {
                     .get(..8)
                     .and_then(|slice| slice.try_into().ok())
                     .map(u64::from_le_bytes)
-                    .ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                    .ok_or(anyhow!("Invalid Instruction - 3 | 4 | 7 | 8"))?;
                 match tag {
                     3 => Self::Transfer { amount },
                     4 => Self::Approve { amount },
@@ -495,7 +496,7 @@ impl<'a> TokenInstruction<'a> {
             6 => {
                 let (authority_type, rest) = rest
                     .split_first()
-                    .ok_or_else(|| Error::Unexpected(format!("Invalid Instruction")))
+                    .ok_or_else(|| anyhow!("Invalid Instruction - 6"))
                     .and_then(|(&t, rest)| Ok((AuthorityType::from(t)?, rest)))?;
                 let (new_authority, _rest) = Self::unpack_pubkey_option(rest)?;
 
@@ -513,8 +514,8 @@ impl<'a> TokenInstruction<'a> {
                     .try_into()
                     .ok()
                     .map(u64::from_le_bytes)
-                    .ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
-                let (&decimals, _rest) = rest.split_first().ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                    .ok_or(anyhow!("Invalid Instruction"))?;
+                let (&decimals, _rest) = rest.split_first().ok_or(anyhow!("Invalid Instruction - 12"))?;
 
                 Self::TransferChecked { amount, decimals }
             }
@@ -524,8 +525,8 @@ impl<'a> TokenInstruction<'a> {
                     .try_into()
                     .ok()
                     .map(u64::from_le_bytes)
-                    .ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
-                let (&decimals, _rest) = rest.split_first().ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                    .ok_or(anyhow!("Invalid Instruction"))?;
+                let (&decimals, _rest) = rest.split_first().ok_or(anyhow!("Invalid Instruction - 13"))?;
 
                 Self::ApproveChecked { amount, decimals }
             }
@@ -535,8 +536,8 @@ impl<'a> TokenInstruction<'a> {
                     .try_into()
                     .ok()
                     .map(u64::from_le_bytes)
-                    .ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
-                let (&decimals, _rest) = rest.split_first().ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                    .ok_or(anyhow!("Invalid Instruction"))?;
+                let (&decimals, _rest) = rest.split_first().ok_or(anyhow!("Invalid Instruction - 14"))?;
 
                 Self::MintToChecked { amount, decimals }
             }
@@ -546,8 +547,8 @@ impl<'a> TokenInstruction<'a> {
                     .try_into()
                     .ok()
                     .map(u64::from_le_bytes)
-                    .ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
-                let (&decimals, _rest) = rest.split_first().ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                    .ok_or(anyhow!("Invalid Instruction"))?;
+                let (&decimals, _rest) = rest.split_first().ok_or(anyhow!("Invalid Instruction - 15"))?;
 
                 Self::BurnChecked { amount, decimals }
             }
@@ -561,11 +562,11 @@ impl<'a> TokenInstruction<'a> {
                 Self::InitializeAccount3 { owner }
             }
             19 => {
-                let &m = rest.get(0).ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                let &m = rest.get(0).ok_or(anyhow!("Invalid Instruction - 19"))?;
                 Self::InitializeMultisig2 { m }
             }
             20 => {
-                let (&decimals, rest) = rest.split_first().ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                let (&decimals, rest) = rest.split_first().ok_or(anyhow!("Invalid Instruction - 20"))?;
                 let (mint_authority, rest) = Self::unpack_pubkey(rest)?;
                 let (freeze_authority, _rest) = Self::unpack_pubkey_option(rest)?;
                 Self::InitializeMint2 {
@@ -582,14 +583,14 @@ impl<'a> TokenInstruction<'a> {
                     .try_into()
                     .ok()
                     .map(u64::from_le_bytes)
-                    .ok_or(Error::Unexpected(format!("Invalid Instruction")))?;
+                    .ok_or(anyhow!("Invalid Instruction - 23"))?;
                 Self::AmountToUiAmount { amount }
             }
             24 => {
-                let ui_amount = std::str::from_utf8(rest).map_err(|_| Error::Unexpected(format!("Invalid Instruction")))?;
+                let ui_amount = std::str::from_utf8(rest).map_err(|_| anyhow!("Invalid Instruction - 24"))?;
                 Self::UiAmountToAmount { ui_amount }
             }
-            _ => return Err(Error::Unexpected(format!("Invalid Instruction"))),
+            _ => return Err(anyhow!("Invalid Instruction - unpack didn't match any tag value: {}", tag)),
         })
     }
 
@@ -599,7 +600,7 @@ impl<'a> TokenInstruction<'a> {
             let pk = key.to_vec();
             Ok((pk, rest))
         } else {
-            Err(Error::Unexpected(format!("Invalid Instruction")))
+            Err(anyhow!("Invalid Instruction"))
         }
     }
 
@@ -611,7 +612,7 @@ impl<'a> TokenInstruction<'a> {
                 let pk = key.to_vec();
                 Ok((COption::Some(pk), rest))
             }
-            _ => Err(Error::Unexpected(format!("Invalid Instruction"))),
+            _ => Err(anyhow!("Invalid Instruction")),
         }
     }
 
@@ -638,7 +639,7 @@ impl AuthorityType {
             1 => Ok(AuthorityType::FreezeAccount),
             2 => Ok(AuthorityType::AccountOwner),
             3 => Ok(AuthorityType::CloseAccount),
-            _ => Err(Error::Unexpected(format!("Invalid Instruction"))),
+            _ => Err(anyhow!("Invalid Instruction")),
         }
     }
 }
