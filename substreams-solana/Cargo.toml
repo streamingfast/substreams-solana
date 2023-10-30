@@ -1,6 +1,6 @@
 [package]
 name = "substreams-solana"
-version = "0.10.1"
+version = "0.10.2"
 edition = "2021"
 description = "Substreams development kit for Solana chains, contains Firehose Block model and helpers."
 homepage = "https://substreams.streamingfast.io/"
@@ -13,6 +13,6 @@ rust-version = "1.60"
 
 [dependencies]
 substreams = "0.5"
-substreams-solana-macro = { version = "0.10.1", path = "../macro" }
-substreams-solana-core = { version = "0.10.1", path = "../core" }
+substreams-solana-macro = { version = "0.10.2", path = "../macro" }
+substreams-solana-core = { version = "0.10.2", path = "../core" }
 anyhow = "1.0.72"
