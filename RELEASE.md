@@ -9,7 +9,11 @@ Requires `Bash`, [sfreleaser](https://github.com/streamingfast/sfreleaser) and [
 export version="0.9.2"
 
 sd '^version = ".*?"$' "version = \"${version}\"" ./core/Cargo.toml
+sd 'version = ".*?",' "version = \"${version}\"," ./core/Cargo.toml
 sd '^version = ".*?"$' "version = \"${version}\"" ./macro/Cargo.toml
+sd 'version = ".*?",' "version = \"${version}\"," ./macro/Cargo.toml
+sd '^version = ".*?"$' "version = \"${version}\"" ./substreams-solana/Cargo.toml
+sd 'version = ".*?",' "version = \"${version}\"," ./substreams-solana/Cargo.toml
 
 # Important so that Cargo.lock is updated and you "test
 cargo test --target aarch64-apple-darwin # Change 'aarch64-apple-darwin' to fit your own platform!
