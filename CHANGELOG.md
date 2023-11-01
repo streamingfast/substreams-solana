@@ -1,5 +1,9 @@
 ## Next
 
+## [v0.11.0](https://github.com/streamingfast/substreams-solana/releases/tag/0.10.2)
+### Breaking changes
+*  Move `substreams-solana` code to https://github.com/streamingfast/substreams-solana-program-instructions crate. 
+
 ## [v0.10.2](https://github.com/streamingfast/substreams-solana/releases/tag/0.10.2)
 
 * Update `Unexpected Errors` returned to use `anyhow` crate instead of custom `UnexpectedError`
