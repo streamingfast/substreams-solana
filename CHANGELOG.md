@@ -1,6 +1,10 @@
 ## Next
 
-## [v0.11.0](https://github.com/streamingfast/substreams-solana/releases/tag/0.10.2)
+## [v0.11.1](https://github.com/streamingfast/substreams-solana/releases/tag/0.11.0)
+### Changes
+* Bring back module substreams-solana to expose modules `core` and `macro`
+
+## [v0.11.0](https://github.com/streamingfast/substreams-solana/releases/tag/0.11.0)
 ### Breaking changes
 *  Move `substreams-solana` code to https://github.com/streamingfast/substreams-solana-program-instructions crate. 
 

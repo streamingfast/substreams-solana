@@ -1,6 +1,6 @@
 [package]
 name = "substreams-solana-macro"
-version = "0.11.0"
+version = "0.11.1"
 edition = "2018"
 description = "Substreams development kit for Solana chains, contains helpful macros"
 authors = ["StreamingFast Contributors <team@streamingfast.io>"]
