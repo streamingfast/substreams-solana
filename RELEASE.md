@@ -8,9 +8,8 @@ Requires `Bash`, [sfreleaser](https://github.com/streamingfast/sfreleaser) and [
 # *Important* Do not forget to replace `0.9.2` below by your real version!
 export version="0.9.2"
 
-sd '^version = ".*?"$' "version = \"${version}\"" Cargo.toml
-sd 'version = ".*?",' "version = \"${version}\"," Cargo.toml
-sd '## Unreleased' "## ${version}" CHANGELOG.md
+sd '^version = ".*?"$' "version = \"${version}\"" ./core/Cargo.toml
+sd '^version = ".*?"$' "version = \"${version}\"" ./macro/Cargo.toml
 
 # Important so that Cargo.lock is updated and you "test
 cargo test --target aarch64-apple-darwin # Change 'aarch64-apple-darwin' to fit your own platform!
