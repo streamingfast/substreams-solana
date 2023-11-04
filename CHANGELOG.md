@@ -1,5 +1,9 @@
 ## Next
 
+### Unreleased
+* Added `resolved_accounts` and `resolved_accounts_as_strings` for address lookup accounts
+  * Both methods will take the `loaded_writable_addresses and `loaded_readonly_addresses` from the `TransactionStatusMeta` of a `ConfirmedTransaction` and resolved the accounts
+
 ## [v0.11.1](https://github.com/streamingfast/substreams-solana/releases/tag/0.11.0)
 ### Changes
 * Bring back module substreams-solana to expose modules `core` and `macro`
