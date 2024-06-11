@@ -29,6 +29,13 @@ impl pb::Block {
     }
 }
 
+pub struct InstructionView2<'a> {
+    pub instruction: Box<dyn Instruction + 'a>,
+    pub trx: &'a pb::ConfirmedTransaction,
+    pub top_instruction: &'a pb::CompiledInstruction,
+    pub top_inner_instructions: &'a Vec<pb::InnerInstruction>,
+}
+
 impl pb::ConfirmedTransaction {
     /// Iterates over instructions for the given transaction.
     pub fn instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView> {
@@ -43,7 +50,7 @@ impl pb::ConfirmedTransaction {
         })
     }
 
-    pub fn all_instructions<'a>(&'a self) -> impl Iterator<Item = impl Instruction + 'a> + 'a {
+    pub fn all_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView2<'a>> + 'a {
         let trx = self.transaction.as_ref().unwrap();
 
         let mut inner_instructions_by_parent = HashMap::new();
@@ -54,7 +61,7 @@ impl pb::ConfirmedTransaction {
         }
 
         AllInstructionIterator {
-            transaction: self.transaction.as_ref().unwrap(),
+            confirmed_transaction: self,
             message: trx.message.as_ref().unwrap(),
             inner_instructions_by_parent,
             top_level_instruction_index: 0,
@@ -71,8 +78,10 @@ impl pb::ConfirmedTransaction {
     }
 }
 
+static EMPTY_INNER_INSTRUCTIONS: Vec<pb::InnerInstruction> = Vec::new();
+
 struct AllInstructionIterator<'a> {
-    transaction: &'a pb::Transaction,
+    confirmed_transaction: &'a pb::ConfirmedTransaction,
     message: &'a pb::Message,
     inner_instructions_by_parent: HashMap<u32, &'a pb::InnerInstructions>,
     top_level_instruction_index: usize,
@@ -80,26 +89,29 @@ struct AllInstructionIterator<'a> {
 }
 
 impl<'a> Iterator for AllInstructionIterator<'a> {
-    type Item = Box<dyn Instruction + 'a>;
+    type Item = InstructionView2<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.top_level_instruction_index
-            >= self
-                .transaction
-                .message
-                .as_ref()
-                .unwrap()
-                .instructions
-                .len()
-        {
+        if self.top_level_instruction_index >= self.message.instructions.len() {
             return None;
         }
 
         let top_level_instruction = &self.message.instructions[self.top_level_instruction_index];
         match self.inner_instruction_index {
             None => {
+                let inner_instructions = self
+                    .inner_instructions_by_parent
+                    .get(&(self.top_level_instruction_index as u32));
+
                 self.inner_instruction_index = Some(0);
-                return Some(Box::new(top_level_instruction));
+                return Some(InstructionView2 {
+                    instruction: Box::new(top_level_instruction),
+                    trx: self.confirmed_transaction,
+                    top_instruction: top_level_instruction,
+                    top_inner_instructions: inner_instructions
+                        .map(|i| &i.instructions)
+                        .unwrap_or(&EMPTY_INNER_INSTRUCTIONS),
+                });
             }
             Some(inner_instruction_index) => {
                 let inner_instructions = self
@@ -115,12 +127,22 @@ impl<'a> Iterator for AllInstructionIterator<'a> {
                     let inner_instruction =
                         &inner_instructions.instructions[inner_instruction_index];
                     self.inner_instruction_index = Some(inner_instruction_index + 1);
-                    return Some(Box::new(inner_instruction));
+                    return Some(InstructionView2 {
+                        instruction: Box::new(inner_instruction),
+                        trx: self.confirmed_transaction,
+                        top_instruction: top_level_instruction,
+                        top_inner_instructions: &inner_instructions.instructions,
+                    });
                 }
 
                 self.inner_instruction_index = None;
                 self.top_level_instruction_index += 1;
-                return Some(Box::new(top_level_instruction));
+                return Some(InstructionView2 {
+                    instruction: Box::new(top_level_instruction),
+                    trx: self.confirmed_transaction,
+                    top_instruction: top_level_instruction,
+                    top_inner_instructions: &EMPTY_INNER_INSTRUCTIONS,
+                });
             }
         }
     }

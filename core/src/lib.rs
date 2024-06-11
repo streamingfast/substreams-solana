@@ -1,6 +1,6 @@
-use std::{collections::HashMap, ops::Deref};
+use std::ops::Deref;
 
-use pb::sf::solana::r#type::v1::{Block, CompiledInstruction, InnerInstruction};
+use pb::sf::solana::r#type::v1::{CompiledInstruction, InnerInstruction};
 
 use crate::pb::sf::solana::r#type::v1::ConfirmedTransaction;
 
