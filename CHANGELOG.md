@@ -1,6 +1,6 @@
 ## Next
 
-### Unreleased
+## [v0.12.0](https://github.com/streamingfast/substreams-solana/releases/tag/0.112.0)
 
 * Added `id` helper on `pb::Transaction` and `pb::ConfirmedTransaction` that returns the transaction's hash as a
   base58 `String` value.
@@ -11,10 +11,9 @@
 * Added `all_instructions` helper on `pb::ConfirmedTransaction` to more easily recursively walk through
   top level as well as inner instructions in one swift. See https://docs.rs/substreams-solana/latest/substreams_solana/pb/sf/solana/type/v1/struct.ConfirmedTransaction.html#method.all_instructions for details.
 
-* Added `resolved_accounts` and `resolved_accounts_as_strings` for address lookup accounts
-  * Both methods will take the `loaded_writable_addresses and `loaded_readonly_addresses` from the `TransactionStatusMeta` of a `ConfirmedTransaction` and resolved the accounts
+* Added `resolved_accounts` for address lookup accounts, the method will take the `loaded_writable_addresses` and `loaded_readonly_addresses` from the `TransactionStatusMeta` of a `ConfirmedTransaction` and resolved the accounts.
 
-## [v0.11.1](https://github.com/streamingfast/substreams-solana/releases/tag/0.11.0)
+## [v0.11.1](https://github.com/streamingfast/substreams-solana/releases/tag/0.11.1)
 ### Changes
 * Bring back module substreams-solana to expose modules `core` and `macro`
 

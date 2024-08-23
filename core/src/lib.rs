@@ -9,6 +9,29 @@ pub mod pb;
 /// Helpers to deal with block sources.
 pub mod block_view;
 
+/// Helpers to deal with base58 encoding and decoding.
+pub mod base58 {
+    /// Base58 encoding helper using [bs58] crate internally. This method
+    /// exists for having a simpler API to encode to base58 [String] type, particularly
+    /// useful when mapping over a collection of byte arrays where you can use `.map(base58::encode)`
+    ///
+    /// Advanced use case(s) like encode to [`Vec<u8>`] or to an existing buffer
+    /// can use `bs58::encode` directly.
+    pub fn encode<T: AsRef<[u8]>>(data: T) -> String {
+        bs58::encode(data.as_ref()).into_string()
+    }
+
+    /// Base58 decoding helper using [bs58] crate internally. This method
+    /// exists for having a simpler API to decoder from [`AsRef<str>`] (so &[str],
+    /// [String] and mostly any string implementation) to [`Vec<u8>`].
+    ///
+    /// Advanced use case(s) like decode to an existing buffer can use `bs58::decode`
+    /// directly.
+    pub fn decode<T: AsRef<str>>(data: T) -> Result<Vec<u8>, bs58::decode::Error> {
+        bs58::decode(data.as_ref()).into_vec()
+    }
+}
+
 // Instruction trait to be implemented by all instructions. The trait enables you to work on
 // a generic instruction type instead of working with either [CompiledInstruction] or [InnerInstruction]
 // model.
@@ -132,36 +155,28 @@ impl ConfirmedTransaction {
         self.transaction.as_ref().unwrap().hash()
     }
 
+    /// Returns the resolved accounts for the transaction. The resolved accounts are the
+    /// accounts that are used in the transaction message and the accounts that are loaded
+    /// by the transaction's meta.
+    ///
+    /// This returns each account as a reference to a byte array. If you need to convert them to
+    /// a string, you can use:
+    ///
+    /// ```no_run
+    /// # use substreams_solana_core::base58;
+    /// # let trx = substreams_solana_core::pb::sf::solana::r#type::v1::ConfirmedTransaction::default();
+    /// let accounts: Vec<_> = trx.resolved_accounts().iter().map(base58::encode).collect();
+    /// ```
     pub fn resolved_accounts(&self) -> Vec<&Vec<u8>> {
         let meta = self.meta.as_ref().unwrap();
+        let message = self.transaction.as_ref().unwrap().message.as_ref().unwrap();
+
         let mut accounts = vec![];
+        accounts.extend(message.account_keys.iter());
+        accounts.extend(meta.loaded_writable_addresses.iter());
+        accounts.extend(meta.loaded_readonly_addresses.iter());
 
-        self.transaction
-            .as_ref()
-            .unwrap()
-            .message
-            .as_ref()
-            .unwrap()
-            .account_keys
-            .iter()
-            .for_each(|addr| {
-                accounts.push(addr);
-            });
-        meta.loaded_writable_addresses.iter().for_each(|addr| {
-            accounts.push(addr);
-        });
-        meta.loaded_readonly_addresses.iter().for_each(|addr| {
-            accounts.push(addr);
-        });
-
-        return accounts;
-    }
-
-    pub fn resolved_accounts_as_strings(&self) -> Vec<String> {
-        self.resolved_accounts()
-            .iter()
-            .map(|addr| bs58::encode(addr).into_string())
-            .collect()
+        accounts
     }
 }
 
@@ -176,5 +191,49 @@ impl Transaction {
     /// transaction's id as a base58 string if it's what you are after.
     pub fn hash(&self) -> &[u8] {
         &self.signatures[0]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::pb::sf::solana::r#type::v1 as pb;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn it_resolves_account_correctly() {
+        let trx = pb::ConfirmedTransaction {
+            transaction: Some(pb::Transaction {
+                signatures: vec![vec![1, 2, 3]],
+                message: Some(pb::Message {
+                    account_keys: vec![bytes("a0"), bytes("a1"), bytes("a2")],
+                    ..Default::default()
+                }),
+            }),
+            meta: Some(pb::TransactionStatusMeta {
+                loaded_writable_addresses: vec![bytes("a3"), bytes("a4")],
+                loaded_readonly_addresses: vec![bytes("a5"), bytes("a6")],
+                ..Default::default()
+            }),
+        };
+
+        assert_eq!(
+            vec![
+                bytes("a0"),
+                bytes("a1"),
+                bytes("a2"),
+                bytes("a3"),
+                bytes("a4"),
+                bytes("a5"),
+                bytes("a6")
+            ],
+            trx.resolved_accounts()
+                .into_iter()
+                .cloned()
+                .collect::<Vec<_>>()
+        );
+    }
+
+    fn bytes(s: &str) -> Vec<u8> {
+        ::hex::decode(s).unwrap()
     }
 }
