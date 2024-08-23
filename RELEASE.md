@@ -8,6 +8,7 @@ Requires `Bash`, [sfreleaser](https://github.com/streamingfast/sfreleaser) and [
 # *Important* Do not forget to replace `0.12.0` below by your real version!
 export version="0.12.0"
 
+sd '^version = ".*?"$' "version = \"${version}\"" Cargo.toml
 sd 'version = ".*?",' "version = \"${version}\"," Cargo.toml
 sd '## Unreleased' "## ${version}" CHANGELOG.md
 
