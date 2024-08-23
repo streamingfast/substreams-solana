@@ -115,20 +115,6 @@ impl Instruction for &InnerInstruction {
     }
 }
 
-impl Transaction {
-    /// Returns the transaction id as a base58 string. Use [Self::hash] method to get the
-    /// transaction's hash as a byte array if it's what you are after
-    pub fn id(&self) -> String {
-        bs58::encode(self.hash()).into_string()
-    }
-
-    /// Returns the transaction's hash as a byte array. Use [Self::id] method to get the
-    /// transaction's id as a base58 string if it's what you are after.
-    pub fn hash(&self) -> &[u8] {
-        &self.signatures[0]
-    }
-}
-
 impl ConfirmedTransaction {
     /// Returns the transaction id as a base58 string. Use [Self::hash] method to get the
     /// transaction's hash as a byte array if it's what you are after
@@ -176,5 +162,19 @@ impl ConfirmedTransaction {
             .iter()
             .map(|addr| bs58::encode(addr).into_string())
             .collect()
+    }
+}
+
+impl Transaction {
+    /// Returns the transaction id as a base58 string. Use [Self::hash] method to get the
+    /// transaction's hash as a byte array if it's what you are after
+    pub fn id(&self) -> String {
+        bs58::encode(self.hash()).into_string()
+    }
+
+    /// Returns the transaction's hash as a byte array. Use [Self::id] method to get the
+    /// transaction's id as a base58 string if it's what you are after.
+    pub fn hash(&self) -> &[u8] {
+        &self.signatures[0]
     }
 }
