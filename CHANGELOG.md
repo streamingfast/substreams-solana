@@ -2,10 +2,10 @@
 
 ### Unreleased
 
-* Added `id` helper on `pb::ConfirmedTransaction` that returns the transaction's hash as a
+* Added `id` helper on `pb::Transaction` and `pb::ConfirmedTransaction` that returns the transaction's hash as a
   base58 `String` value.
 
-* Added `hash` helper on `pb::ConfirmedTransaction` that returns the transaction's hash as a
+* Added `hash` helper on `pb::Transaction` and `pb::ConfirmedTransaction` that returns the transaction's hash as a
   byte array (`&[u8]`).
 
 * Added `all_instructions` helper on `pb::ConfirmedTransaction` to more easily recursively walk through

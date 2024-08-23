@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use pb::sf::solana::r#type::v1::{CompiledInstruction, InnerInstruction};
+use pb::sf::solana::r#type::v1::{CompiledInstruction, InnerInstruction, Transaction};
 
 use crate::pb::sf::solana::r#type::v1::ConfirmedTransaction;
 
@@ -115,7 +115,7 @@ impl Instruction for &InnerInstruction {
     }
 }
 
-impl ConfirmedTransaction {
+impl Transaction {
     /// Returns the transaction id as a base58 string. Use [Self::hash] method to get the
     /// transaction's hash as a byte array if it's what you are after
     pub fn id(&self) -> String {
@@ -125,7 +125,25 @@ impl ConfirmedTransaction {
     /// Returns the transaction's hash as a byte array. Use [Self::id] method to get the
     /// transaction's id as a base58 string if it's what you are after.
     pub fn hash(&self) -> &[u8] {
-        &self.transaction.as_ref().unwrap().signatures[0]
+        &self.signatures[0]
+    }
+}
+
+impl ConfirmedTransaction {
+    /// Returns the transaction id as a base58 string. Use [Self::hash] method to get the
+    /// transaction's hash as a byte array if it's what you are after
+    ///
+    /// This is a simpler helper over `self.transaction.as_ref().unwrap().id()`.
+    pub fn id(&self) -> String {
+        self.transaction.as_ref().unwrap().id()
+    }
+
+    /// Returns the transaction's hash as a byte array. Use [Self::id] method to get the
+    /// transaction's id as a base58 string if it's what you are after.
+    ///
+    /// This is a simpler helper over `self.transaction.as_ref().unwrap().hash()`.
+    pub fn hash(&self) -> &[u8] {
+        self.transaction.as_ref().unwrap().hash()
     }
 
     pub fn resolved_accounts(&self) -> Vec<&Vec<u8>> {

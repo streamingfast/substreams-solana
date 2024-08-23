@@ -17,6 +17,12 @@
 //!   returns an owned iterator over successful transactions of a block. The iterator element is a owned
 //!   [ConfirmedTransaction][substreams_solana_core::pb::sf::solana::type::v1::ConfirmedTransaction].
 //!
+//! - [Transaction::id][substreams_solana_core::pb::sf::solana::type::v1::Transaction::id]
+//!   returns the transaction's id (first signature) as a base58 encoded string.
+//!
+//! - [Transaction::hash][substreams_solana_core::pb::sf::solana::type::v1::Transaction::hash]
+//!   returns the transaction's hash (first signature) as byte array.
+//!
 //! - [ConfirmedTransaction::id][substreams_solana_core::pb::sf::solana::type::v1::ConfirmedTransaction::id]
 //!   returns the transaction's id (first signature) as a base58 encoded string.
 //!
