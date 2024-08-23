@@ -7,7 +7,7 @@ homepage = "https://substreams.streamingfast.io/"
 repository = "https://github.com/streamingfast/substreams-solana/tree/develop/core"
 license = "Apache-2.0"
 readme = "../README.md"
-keywords = [ "substreams", "solana", "streamingfast", "firehose", "thegraph"]
+keywords = ["substreams", "solana", "streamingfast", "firehose", "thegraph"]
 categories = ["wasm"]
 rust-version = "1.64"
 
@@ -21,3 +21,6 @@ prost-build = "0.11"
 
 [dev-dependencies]
 anyhow = "1"
+hex = "0.4"
+paste = "1"
+pretty_assertions = "1.4"

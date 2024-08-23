@@ -1,9 +1,6 @@
 [workspace]
-members = [
-    "core",
-    "macro",
-    "substreams-solana",
-]
+members = ["core", "macro", "substreams-solana"]
+resolver = "2"
 
 [profile.release]
 lto = true
