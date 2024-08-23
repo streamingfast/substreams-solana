@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   byte array (`&[u8]`).
 
 * Added `all_instructions` helper on `pb::ConfirmedTransaction` to more easily recursively walk through
-  top level as well as inner instructions in one swift. See https://docs.rs/substreams-solana/latest/substreams_solana/pb/sf/solana/type/v1/struct.ConfirmedTransaction.html#method.all_instructions for details.
+  top level as well as inner instructions in one swift. See [all_instructions Docs](https://docs.rs/substreams-solana/latest/substreams_solana/pb/sf/solana/type/v1/struct.ConfirmedTransaction.html#method.all_instructions) for details.
 
 * Added `resolved_accounts` for address lookup accounts, the method will take the `loaded_writable_addresses` and `loaded_readonly_addresses` from the `TransactionStatusMeta` of a `ConfirmedTransaction` and resolved the accounts.
 
