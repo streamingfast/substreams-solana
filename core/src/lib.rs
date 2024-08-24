@@ -1,9 +1,11 @@
 use std::ops::Deref;
 
+use address::Address;
 use pb::sf::solana::r#type::v1::{CompiledInstruction, InnerInstruction, Transaction};
 
 use crate::pb::sf::solana::r#type::v1::ConfirmedTransaction;
 
+pub mod address;
 pub mod pb;
 
 /// Helpers to deal with block sources.
@@ -32,17 +34,24 @@ pub mod base58 {
     }
 }
 
-// Instruction trait to be implemented by all instructions. The trait enables you to work on
-// a generic instruction type instead of working with either [CompiledInstruction] or [InnerInstruction]
-// model.
+/// Instruction trait to be implemented by all instructions. The trait enables you to work on
+/// a generic instruction type instead of working with either [CompiledInstruction] or [InnerInstruction]
+/// model.
 pub trait Instruction {
+    /// Returns the index of the program id in the transaction message's account keys.
+    ///
+    /// If you come from `all_instructions` method, iterator element given when iterating an
     fn program_id_index(&self) -> u32;
 
-    // Returns the indices of the accounts that are specified for this instruction. Those are
-    // not the resolved addresses but the indices of the accounts in the transaction message.
-    //
-    // If you come from `all_instructions` method, iterator element given when iterating an
-    // instruction has a `resolved_accounts` method that returns the resolved addresses.
+    /// Returns the indices of the accounts that are specified for this instruction. Those are
+    /// not the resolved addresses but the indices of the accounts in the transaction message.
+    ///
+    /// If you come from `all_instructions` method, you receive a [block_view::InstructionView2]
+    /// element that has [block_view::InstructionView2::resolved_accounts] field with resolved
+    /// accounts.
+    ///
+    /// iterator element
+    /// instruction has a `resolved_accounts` method that returns the resolved addresses.
     fn accounts(&self) -> &Vec<u8>;
     fn data(&self) -> &Vec<u8>;
     fn stack_height(&self) -> Option<u32>;
@@ -63,6 +72,24 @@ impl<'a> Instruction for Box<dyn Instruction + 'a> {
 
     fn stack_height(&self) -> Option<u32> {
         self.deref().stack_height()
+    }
+}
+
+impl<'a> Instruction for &Box<dyn Instruction + 'a> {
+    fn program_id_index(&self) -> u32 {
+        (*self).deref().program_id_index()
+    }
+
+    fn accounts(&self) -> &Vec<u8> {
+        (*self).deref().accounts()
+    }
+
+    fn data(&self) -> &Vec<u8> {
+        (*self).deref().data()
+    }
+
+    fn stack_height(&self) -> Option<u32> {
+        (*self).deref().stack_height()
     }
 }
 
@@ -178,6 +205,37 @@ impl ConfirmedTransaction {
 
         accounts
     }
+
+    pub fn account_at<'a>(&'a self, index: u8) -> Address<'a> {
+        let mut i: usize = index.into();
+
+        let account_keys = &self
+            .transaction
+            .as_ref()
+            .unwrap()
+            .message
+            .as_ref()
+            .unwrap()
+            .account_keys;
+
+        if i < account_keys.len() {
+            return Address(&account_keys[i]);
+        }
+
+        let meta = self.meta.as_ref().unwrap();
+
+        i = i - account_keys.len();
+        if i < meta.loaded_writable_addresses.len() {
+            return Address(&meta.loaded_writable_addresses[i]);
+        }
+
+        i = i - meta.loaded_writable_addresses.len();
+        if i < meta.loaded_readonly_addresses.len() {
+            return Address(&meta.loaded_readonly_addresses[i]);
+        }
+
+        panic!("Account index {} out of bounds", index);
+    }
 }
 
 impl Transaction {
@@ -231,6 +289,14 @@ mod tests {
                 .cloned()
                 .collect::<Vec<_>>()
         );
+
+        assert_eq!(bytes("a0"), trx.account_at(0));
+        assert_eq!(bytes("a1"), trx.account_at(1));
+        assert_eq!(bytes("a2"), trx.account_at(2));
+        assert_eq!(bytes("a3"), trx.account_at(3));
+        assert_eq!(bytes("a4"), trx.account_at(4));
+        assert_eq!(bytes("a5"), trx.account_at(5));
+        assert_eq!(bytes("a6"), trx.account_at(6));
     }
 
     fn bytes(s: &str) -> Vec<u8> {
