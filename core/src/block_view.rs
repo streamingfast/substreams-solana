@@ -31,28 +31,8 @@ impl pb::Block {
 /// A view over an instruction when iterating over a transaction.
 pub struct InstructionView<'a> {
     instruction: Box<dyn Instruction + 'a>,
-
     trx: &'a pb::ConfirmedTransaction,
-
-    // FIXME: I tried to make this a &Vec<&'a Vec<u8>>, the thing is that the
-    // & on &Vec<...> and the inner one &'a Vec<u8> are different lifetimes.
-    // The former reference is bound to the Iterator, while the latter is bound
-    // to the ConfirmedTransaction that holds this instruction.
-    //
-    // The thing is that this fails because the iterator has a shorter lifetime.
-    // If we could attach a resolved accounts field, e.g. an owned `Vec<Vec<u8>>`,
-    // to ConfirmTransaction, the compiler would be happy since we could
-    // specify `&'a Vec<&'a Vec<u8>>` as both would be owned by the same struct.
-    /// The resolved accounts for this specific instruction, it's the same as
-    /// `instruction.accounts()` but each element is the resolved address and not
-    /// the index of the account in the transaction message.
-    resolved_accounts: Vec<Address<'a>>,
-    resolved_program_id: Address<'a>,
-
-    /// The top level instruction that holds this instruction, could be the same
-    /// as the instruction itself if it's a top level instruction.
     top_instruction: &'a pb::CompiledInstruction,
-    /// The inner instructions of the top level instruction that holds this instruction.
     top_inner_instructions: &'a Vec<pb::InnerInstruction>,
 }
 
@@ -65,8 +45,10 @@ impl<'a> InstructionView<'a> {
     /// # let instruction_view: substreams_solana_core::block_view::InstructionView = unimplemented!();
     /// let program_id = instruction_view.program_id().to_string();
     /// ```
-    pub fn program_id(&self) -> &Address {
-        &self.resolved_program_id
+    pub fn program_id(&self) -> Address {
+        // &self.resolved_program_id
+        self.trx
+            .account_at(self.instruction.program_id_index() as u8)
     }
 
     /// Returns the resolved accounts defined by this instruction. You can
@@ -77,8 +59,13 @@ impl<'a> InstructionView<'a> {
     /// # let instruction_view: substreams_solana_core::block_view::InstructionView = unimplemented!();
     /// let accounts = instruction_view.accounts().iter().map(Address::to_string).collect::<Vec<_>>();
     /// ```
-    pub fn accounts(&self) -> &Vec<Address<'a>> {
-        &self.resolved_accounts
+    pub fn accounts(&self) -> Vec<Address<'a>> {
+        // &self.resolved_accounts
+        self.instruction
+            .accounts()
+            .iter()
+            .map(|index| self.trx.account_at(*index))
+            .collect()
     }
 
     pub fn data(&self) -> &Vec<u8> {
@@ -119,21 +106,11 @@ impl<'a> InstructionView<'a> {
     /// The inner instructions of the top level instruction that holds this instruction.
     /// It's the direct children of [Self::top_instruction].
     pub fn top_inner_instructions(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
-        let resolved_accounts: Vec<&Vec<u8>> = self.trx.resolved_accounts();
-
         self.top_inner_instructions
             .iter()
             .map(move |inner_instruction| InstructionView {
                 instruction: Box::new(inner_instruction),
                 trx: self.trx,
-                resolved_program_id: Address(
-                    resolved_accounts[inner_instruction.program_id_index as usize],
-                ),
-                resolved_accounts: inner_instruction
-                    .accounts
-                    .iter()
-                    .map(|index| Address(resolved_accounts[*index as usize]))
-                    .collect(),
                 top_instruction: self.top_instruction,
                 top_inner_instructions: &self.top_inner_instructions,
             })
@@ -162,7 +139,6 @@ impl pb::ConfirmedTransaction {
     /// for each top level instruction in the transaction. The [InstructionView] provides convenient
     /// access to the resolved program id and accounts instead of the raw account indices.
     pub fn top_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
-        let resolved_accounts: Vec<&Vec<u8>> = self.resolved_accounts();
         let mut inner_instructions_by_parent = HashMap::new();
         if let Some(meta) = self.meta.as_ref() {
             for inner_instructions in meta.inner_instructions.iter() {
@@ -183,12 +159,6 @@ impl pb::ConfirmedTransaction {
                 InstructionView {
                     instruction: Box::new(inst),
                     trx: self,
-                    resolved_program_id: Address(resolved_accounts[inst.program_id_index as usize]),
-                    resolved_accounts: inst
-                        .accounts
-                        .iter()
-                        .map(|index| Address(resolved_accounts[*index as usize]))
-                        .collect(),
                     top_instruction: inst,
                     top_inner_instructions: inner_instructions
                         .map(|i| &i.instructions)
@@ -215,7 +185,6 @@ impl pb::ConfirmedTransaction {
 
         AllInstructionIterator {
             confirmed_transaction: self,
-            resolved_accounts: self.resolved_accounts(),
             message: trx.message.as_ref().unwrap(),
             inner_instructions_by_parent,
             top_level_instruction_index: 0,
@@ -240,7 +209,6 @@ struct AllInstructionIterator<'a> {
     inner_instructions_by_parent: HashMap<u32, &'a pb::InnerInstructions>,
     top_level_instruction_index: usize,
     inner_instruction_index: Option<usize>,
-    resolved_accounts: Vec<&'a Vec<u8>>,
 }
 
 impl<'a> Iterator for AllInstructionIterator<'a> {
@@ -262,14 +230,6 @@ impl<'a> Iterator for AllInstructionIterator<'a> {
                 return Some(InstructionView {
                     instruction: Box::new(top_level_instruction),
                     trx: self.confirmed_transaction,
-                    resolved_program_id: Address(
-                        self.resolved_accounts[top_level_instruction.program_id_index as usize],
-                    ),
-                    resolved_accounts: top_level_instruction
-                        .accounts
-                        .iter()
-                        .map(|index| Address(self.resolved_accounts[*index as usize]))
-                        .collect(),
                     top_instruction: top_level_instruction,
                     top_inner_instructions: inner_instructions
                         .map(|i| &i.instructions)
@@ -300,14 +260,6 @@ impl<'a> Iterator for AllInstructionIterator<'a> {
                         self.inner_instruction_index = Some(inner_instruction_index + 1);
                         return Some(InstructionView {
                             instruction: Box::new(inner_instruction),
-                            resolved_program_id: Address(
-                                self.resolved_accounts[inner_instruction.program_id_index as usize],
-                            ),
-                            resolved_accounts: inner_instruction
-                                .accounts
-                                .iter()
-                                .map(|index| Address(self.resolved_accounts[*index as usize]))
-                                .collect(),
                             trx: self.confirmed_transaction,
                             top_instruction: top_level_instruction,
                             top_inner_instructions: &inner_instructions.instructions,

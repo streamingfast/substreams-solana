@@ -207,7 +207,7 @@ impl ConfirmedTransaction {
     }
 
     pub fn account_at<'a>(&'a self, index: u8) -> Address<'a> {
-        let mut i: usize = index.into();
+        let mut i: usize = index as usize;
 
         let account_keys = &self
             .transaction
