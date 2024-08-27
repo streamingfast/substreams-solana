@@ -39,19 +39,10 @@ pub mod base58 {
 /// model.
 pub trait Instruction {
     /// Returns the index of the program id in the transaction message's account keys.
-    ///
-    /// If you come from `all_instructions` method, iterator element given when iterating an
     fn program_id_index(&self) -> u32;
 
     /// Returns the indices of the accounts that are specified for this instruction. Those are
     /// not the resolved addresses but the indices of the accounts in the transaction message.
-    ///
-    /// If you come from `all_instructions` method, you receive a [block_view::InstructionView2]
-    /// element that has [block_view::InstructionView2::resolved_accounts] field with resolved
-    /// accounts.
-    ///
-    /// iterator element
-    /// instruction has a `resolved_accounts` method that returns the resolved addresses.
     fn accounts(&self) -> &Vec<u8>;
     fn data(&self) -> &Vec<u8>;
     fn stack_height(&self) -> Option<u32>;
@@ -206,6 +197,9 @@ impl ConfirmedTransaction {
         accounts
     }
 
+    /// Returns the account at the given index. The index is the index of the account in the
+    /// transaction message's account keys/meta loaded writable/readonly addresses. If the
+    /// index is out of bounds, the method panics.
     pub fn account_at<'a>(&'a self, index: u8) -> Address<'a> {
         let mut i: usize = index as usize;
 

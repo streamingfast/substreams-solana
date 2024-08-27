@@ -29,10 +29,10 @@
 //! - [ConfirmedTransaction::hash][substreams_solana_core::pb::sf::solana::type::v1::ConfirmedTransaction::hash]
 //!   returns the transaction's hash (first signature) as byte array.
 //!
-//! - [ConfirmedTransaction::all_instructions][substreams_solana_core::pb::sf::solana::type::v1::ConfirmedTransaction::all_instructions]
+//! - [ConfirmedTransaction::walk_instructions][substreams_solana_core::pb::sf::solana::type::v1::ConfirmedTransaction::walk_instructions]
 //!   returns an iterator over all instructions, including inner instructions, of a transaction. The iterator
-//!   element is a view over the instruction, has resolved accounts and provides access to the transaction, top level
-//!   instruction and inner instructions of the transaction.  It make it much easier to walk the whole instruction tree of a
+//!   element is a view over the instruction, has resolved accounts and provides access to the transaction, compiled
+//!   instruction  of the transaction.  It make it much easier to walk the whole instruction tree of a
 //!   transaction. Refer to the method documentation for more information about it.
 pub use substreams_solana_core::{address::Address, base58, block_view, pb, Instruction};
 pub use substreams_solana_macro::b58;
