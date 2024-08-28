@@ -22,9 +22,20 @@ impl pb::Block {
         })
     }
 
-    /// Iterates over instructions  of successful transactions in given block.
-    pub fn instructions(&self) -> impl Iterator<Item = InstructionView> {
-        self.transactions().map(|trx| trx.instructions()).flatten()
+    /// Iterates over compiled instructions of the block. Refer to [pb::ConfirmedTransaction::compiled_instructions]
+    /// for details about the iteration.
+    pub fn compiled_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
+        self.transactions()
+            .map(|trx| trx.compiled_instructions())
+            .flatten()
+    }
+
+    /// Iterates over all instructions, including inner instructions, of the block. Refer to
+    /// [pb::ConfirmedTransaction::walk_instructions] for details about the iteration.
+    pub fn walk_instructions(&self) -> impl Iterator<Item = InstructionView> {
+        self.transactions()
+            .map(|trx| trx.walk_instructions())
+            .flatten()
     }
 }
 
@@ -32,9 +43,15 @@ impl pb::Block {
 pub struct InstructionView<'a> {
     instruction: Box<dyn Instruction + 'a>,
     trx: &'a pb::ConfirmedTransaction,
-    top_instruction: &'a pb::CompiledInstruction,
-    top_inner_instructions: &'a Vec<pb::InnerInstruction>,
+    compiled_instruction: &'a pb::CompiledInstruction,
+
+    // Available only if the current instruction's view is a compiled instruction.
+    // Used to iterate over inner instructions of the compiled instruction, if
+    // desired.
+    compiled_index: Option<usize>,
 }
+
+static EMPTY_INNER_INSTRUCTIONS: Vec<pb::InnerInstruction> = Vec::new();
 
 impl<'a> InstructionView<'a> {
     /// Returns the resolved program id defined by this instruction as an [Address]
@@ -81,44 +98,81 @@ impl<'a> InstructionView<'a> {
         self.maybe_stack_height().unwrap_or(0)
     }
 
+    /// Returns the stack height of the instruction if it's present or None if the
+    /// See [Self::stack_height] for details when the stack height field was introduced.
     pub fn maybe_stack_height(&self) -> Option<u32> {
         self.instruction.stack_height()
     }
 
-    /// The actual iterated raw instruction abstracted by the Instruction trait.
-    /// The [InstructionView] provides a more convenient way to access the various
-    /// information about the instruction since it offers "resolved" program id and
-    /// accounts instead of the raw account indices.
+    // /// The actual iterated raw instruction abstracted by the Instruction trait.
+    // /// The [InstructionView] provides a more convenient way to access the various
+    // /// information about the instruction since it offers "resolved" program id and
+    // /// accounts instead of the raw account indices.
+    // ///
+    // /// - [Self::program_id] returns the resolved program id of the instruction.
+    // /// - [Self::accounts] returns the resolved accounts of the instruction.
+    // /// - [Self::data] returns the data of the instruction.
+    // pub fn instruction<'b: 'a>(&'b self) -> impl Instruction + 'a + 'b {
+    //     &self.instruction
+    // }
+
+    /// The inner instructions of the compiled instruction that holds this instruction.
+    /// It's the direct children of [Self::compiled_instruction]. This method will return
+    /// an empty iterator if the current instruction is not a compiled instruction, e.g.
+    /// [Self::is_root()] == false.
     ///
-    /// - [Self::program_id] returns the resolved program id of the instruction.
-    /// - [Self::accounts] returns the resolved accounts of the instruction.
-    /// - [Self::data] returns the data of the instruction.
-    pub fn instruction<'b: 'a>(&'b self) -> impl Instruction + 'a + 'b {
-        &self.instruction
+    /// If you are **not** in a compiled instruction and would still like to iterate over
+    /// inner instructions, open an issue and we will consider adding a method to do that.
+    pub fn inner_instructions(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
+        let inner = match self.compiled_index {
+            None => &EMPTY_INNER_INSTRUCTIONS,
+            Some(index) => self
+                .meta()
+                .inner_instructions
+                .iter()
+                .find(|i| i.index == index as u32)
+                .map(|i| &i.instructions)
+                .unwrap_or_else(|| &EMPTY_INNER_INSTRUCTIONS),
+        };
+
+        inner.iter().map(move |inner_instruction| InstructionView {
+            instruction: Box::new(inner_instruction),
+            trx: self.trx,
+            compiled_instruction: self.compiled_instruction,
+            compiled_index: None,
+        })
     }
 
-    /// The top level instruction that holds this instruction, could be the same
-    /// as the instruction itself if it's a top level instruction.
-    pub fn top_instruction(&self) -> &'a pb::CompiledInstruction {
-        self.top_instruction
+    /// Returns true if the instruction your are iterating over is a compiled instruction,
+    /// e.g. a root instruction of a transaction or false if the view represents an
+    /// inner instruction.
+    pub fn is_root(&self) -> bool {
+        self.compiled_index.is_some()
     }
 
-    /// The inner instructions of the top level instruction that holds this instruction.
-    /// It's the direct children of [Self::top_instruction].
-    pub fn top_inner_instructions(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
-        self.top_inner_instructions
-            .iter()
-            .map(move |inner_instruction| InstructionView {
-                instruction: Box::new(inner_instruction),
-                trx: self.trx,
-                top_instruction: self.top_instruction,
-                top_inner_instructions: &self.top_inner_instructions,
-            })
+    /// The compiled instruction within which this instruction was originally found.
+    /// Could be the same as the current [InstructionView] instance that you are
+    /// currently viewing if [Self::is_root] is `true`.
+    ///
+    /// If you are iterating over inner instructions, this method will return the
+    /// compiled instruction that holds the inner instructions.
+    pub fn compiled_instruction(&self) -> InstructionView<'a> {
+        InstructionView {
+            instruction: Box::new(self.compiled_instruction),
+            trx: self.trx,
+            compiled_instruction: self.compiled_instruction,
+            compiled_index: self.compiled_index,
+        }
     }
 
     /// The transactions's message that holds this instruction.
     pub fn message(&self) -> &'a pb::Message {
         self.transaction().message.as_ref().unwrap()
+    }
+
+    /// The transactions's meta that holds this instruction
+    pub fn meta(&self) -> &'a pb::TransactionStatusMeta {
+        self.trx.meta.as_ref().unwrap()
     }
 
     /// The transaction that holds this instruction, for easy access to the message
@@ -135,10 +189,22 @@ impl<'a> InstructionView<'a> {
 }
 
 impl pb::ConfirmedTransaction {
-    /// Iterates over top instructions for the given transaction. You receive an [InstructionView]
-    /// for each top level instruction in the transaction. The [InstructionView] provides convenient
+    /// Iterates over compiled instructions for the given transaction. You receive an [InstructionView]
+    /// for each compiled level instruction in the transaction. The [InstructionView] provides convenient
     /// access to the resolved program id and accounts instead of the raw account indices.
-    pub fn top_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
+    ///
+    /// If you then need to iterate over inner instructions of a compiled instruction, you can use:
+    ///
+    /// ```no_run
+    /// # use substreams_solana_core::block_view::InstructionView;
+    /// # let trx = substreams_solana_core::pb::sf::solana::r#type::v1::ConfirmedTransaction::default();
+    /// for view in trx.compiled_instructions() {
+    ///    for inner_instruction_view in view.inner_instructions() {
+    ///       // Do something with the inner instruction
+    ///   }
+    /// }
+    /// ```
+    pub fn compiled_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
         let mut inner_instructions_by_parent = HashMap::new();
         if let Some(meta) = self.meta.as_ref() {
             for inner_instructions in meta.inner_instructions.iter() {
@@ -153,27 +219,22 @@ impl pb::ConfirmedTransaction {
                     .iter()
                     .flat_map(|m| m.instructions.iter().enumerate())
             })
-            .map(move |(index, inst)| {
-                let inner_instructions = inner_instructions_by_parent.get(&(index as u32));
-
-                InstructionView {
-                    instruction: Box::new(inst),
-                    trx: self,
-                    top_instruction: inst,
-                    top_inner_instructions: inner_instructions
-                        .map(|i| &i.instructions)
-                        .unwrap_or(&EMPTY_INNER_INSTRUCTIONS),
-                }
+            .map(move |(i, inst)| InstructionView {
+                instruction: Box::new(inst),
+                trx: self,
+                compiled_instruction: inst,
+                compiled_index: Some(i),
             })
     }
 
     /// Iterates over all instructions, including inner instructions, of the transaction. The iteration
-    /// starts with the first top level instruction and then goes through all inner instructions, if any,
-    /// of this top level instruction. Then it moves to the next top level instruction and so on recursively.
+    /// starts with the first compiled instruction and then goes through all its inner instructions, if any.
+    /// Then it moves to the next compiled instruction and so on recursively.
     ///
     /// You receive a [InstructionView] for each instruction visited in the transaction. The [InstructionView]
-    /// provides convenient access to the resolved program id and accounts instead of the raw account indices.
-    pub fn instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
+    /// provides convenient access to the resolved [InstructionView::program_id] and [InstructionView::accounts]
+    /// instead of the raw program id index & account indices.
+    pub fn walk_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
         let trx = self.transaction.as_ref().unwrap();
 
         let mut inner_instructions_by_parent = HashMap::new();
@@ -201,8 +262,6 @@ impl pb::ConfirmedTransaction {
     }
 }
 
-static EMPTY_INNER_INSTRUCTIONS: Vec<pb::InnerInstruction> = Vec::new();
-
 struct AllInstructionIterator<'a> {
     confirmed_transaction: &'a pb::ConfirmedTransaction,
     message: &'a pb::Message,
@@ -222,18 +281,12 @@ impl<'a> Iterator for AllInstructionIterator<'a> {
         let top_level_instruction = &self.message.instructions[self.top_level_instruction_index];
         match self.inner_instruction_index {
             None => {
-                let inner_instructions = self
-                    .inner_instructions_by_parent
-                    .get(&(self.top_level_instruction_index as u32));
-
                 self.inner_instruction_index = Some(0);
                 return Some(InstructionView {
                     instruction: Box::new(top_level_instruction),
                     trx: self.confirmed_transaction,
-                    top_instruction: top_level_instruction,
-                    top_inner_instructions: inner_instructions
-                        .map(|i| &i.instructions)
-                        .unwrap_or(&EMPTY_INNER_INSTRUCTIONS),
+                    compiled_instruction: top_level_instruction,
+                    compiled_index: Some(self.top_level_instruction_index),
                 });
             }
             Some(inner_instruction_index) => {
@@ -261,8 +314,8 @@ impl<'a> Iterator for AllInstructionIterator<'a> {
                         return Some(InstructionView {
                             instruction: Box::new(inner_instruction),
                             trx: self.confirmed_transaction,
-                            top_instruction: top_level_instruction,
-                            top_inner_instructions: &inner_instructions.instructions,
+                            compiled_instruction: top_level_instruction,
+                            compiled_index: None,
                         });
                     }
                 }
@@ -344,14 +397,14 @@ mod tests {
         assert_eq!(None, iter.next());
     }
 
-    macro_rules! instructions_test_case {
+    macro_rules! walk_instructions_test_case {
         ( $name:ident, $trx:expr, $expected:expr ) => {
             paste! {
                 #[test]
                 fn [<it_instructions_ $name>]() {
                     let trx = $trx;
                     let instructions = trx
-                        .instructions()
+                        .walk_instructions()
                         .map(Into::<ComparableInstructionView>::into)
                         .collect::<Vec<_>>();
                     assert_eq!($expected, instructions);
@@ -360,7 +413,7 @@ mod tests {
         };
     }
 
-    instructions_test_case!(
+    walk_instructions_test_case!(
         empty_trx,
         pb::ConfirmedTransaction {
             transaction: Some(pb::Transaction {
@@ -380,7 +433,7 @@ mod tests {
         Vec::<ComparableInstructionView>::new()
     );
 
-    instructions_test_case!(
+    walk_instructions_test_case!(
         single_top_level_instruction,
         pb::ConfirmedTransaction {
             transaction: Some(pb::Transaction {
@@ -405,11 +458,11 @@ mod tests {
             data: str("010203"),
             stack_height: 0,
             instruction_id: 1,
-            top_instruction_id: 1,
+            compiled_instruction_id: 1,
         }]
     );
 
-    instructions_test_case!(
+    walk_instructions_test_case!(
         multiple_top_level_instruction,
         pb::ConfirmedTransaction {
             transaction: Some(pb::Transaction {
@@ -442,7 +495,7 @@ mod tests {
                 data: str("010203"),
                 stack_height: 0,
                 instruction_id: 1,
-                top_instruction_id: 1,
+                compiled_instruction_id: 1,
             },
             ComparableInstructionView {
                 program_id: str("a2"),
@@ -450,12 +503,12 @@ mod tests {
                 data: str("060708"),
                 stack_height: 0,
                 instruction_id: 2,
-                top_instruction_id: 2,
+                compiled_instruction_id: 2,
             }
         ]
     );
 
-    instructions_test_case!(
+    walk_instructions_test_case!(
         full_deep_nested_instructions,
         pb::ConfirmedTransaction {
             transaction: Some(pb::Transaction {
@@ -529,7 +582,7 @@ mod tests {
                 data: str("010203"),
                 stack_height: 0,
                 instruction_id: 1,
-                top_instruction_id: 1,
+                compiled_instruction_id: 1,
             },
             ComparableInstructionView {
                 program_id: str("a4"),
@@ -537,7 +590,7 @@ mod tests {
                 data: str("040506"),
                 stack_height: 1,
                 instruction_id: 4,
-                top_instruction_id: 1,
+                compiled_instruction_id: 1,
             },
             ComparableInstructionView {
                 program_id: str("a2"),
@@ -545,7 +598,7 @@ mod tests {
                 data: str("060708"),
                 stack_height: 0,
                 instruction_id: 2,
-                top_instruction_id: 2,
+                compiled_instruction_id: 2,
             },
             ComparableInstructionView {
                 program_id: str("a3"),
@@ -553,7 +606,7 @@ mod tests {
                 data: str("090a0b"),
                 stack_height: 0,
                 instruction_id: 3,
-                top_instruction_id: 3,
+                compiled_instruction_id: 3,
             },
             ComparableInstructionView {
                 program_id: str("a5"),
@@ -561,7 +614,7 @@ mod tests {
                 data: str("0a0b0c"),
                 stack_height: 1,
                 instruction_id: 5,
-                top_instruction_id: 3,
+                compiled_instruction_id: 3,
             },
             ComparableInstructionView {
                 program_id: str("a6"),
@@ -569,19 +622,19 @@ mod tests {
                 data: str("0d0e0f"),
                 stack_height: 2,
                 instruction_id: 6,
-                top_instruction_id: 3,
+                compiled_instruction_id: 3,
             },
         ]
     );
 
-    macro_rules! top_instructions_test_case {
+    macro_rules! compiled_instructions_test_case {
         ( $name:ident, $trx:expr, $expected:expr ) => {
             paste! {
                 #[test]
-                fn [<it_top_instructions_ $name>]() {
+                fn [<it_compiled_instructions_ $name>]() {
                     let trx = $trx;
                     let instructions = trx
-                        .top_instructions()
+                        .compiled_instructions()
                         .map(Into::<ComparableInstructionView>::into)
                         .collect::<Vec<_>>();
                     assert_eq!($expected, instructions);
@@ -590,7 +643,7 @@ mod tests {
         };
     }
 
-    top_instructions_test_case!(
+    compiled_instructions_test_case!(
         empty_trx,
         pb::ConfirmedTransaction {
             transaction: Some(pb::Transaction {
@@ -610,7 +663,7 @@ mod tests {
         Vec::<ComparableInstructionView>::new()
     );
 
-    top_instructions_test_case!(
+    compiled_instructions_test_case!(
         full_deep_nested_instructions,
         pb::ConfirmedTransaction {
             transaction: Some(pb::Transaction {
@@ -684,7 +737,7 @@ mod tests {
                 data: str("010203"),
                 stack_height: 0,
                 instruction_id: 1,
-                top_instruction_id: 1,
+                compiled_instruction_id: 1,
             },
             ComparableInstructionView {
                 program_id: str("a2"),
@@ -692,7 +745,7 @@ mod tests {
                 data: str("060708"),
                 stack_height: 0,
                 instruction_id: 2,
-                top_instruction_id: 2,
+                compiled_instruction_id: 2,
             },
             ComparableInstructionView {
                 program_id: str("a3"),
@@ -700,7 +753,7 @@ mod tests {
                 data: str("090a0b"),
                 stack_height: 0,
                 instruction_id: 3,
-                top_instruction_id: 3,
+                compiled_instruction_id: 3,
             },
         ]
     );
@@ -713,8 +766,8 @@ mod tests {
         stack_height: u32,
         // Program ID index of the instruction via the trait Instruction access
         instruction_id: u32,
-        // Program ID index of the top level instruction
-        top_instruction_id: u32,
+        // Program ID index of the compiled instruction
+        compiled_instruction_id: u32,
     }
 
     impl From<InstructionView<'_>> for ComparableInstructionView {
@@ -724,8 +777,8 @@ mod tests {
                 accounts: view.accounts().iter().map(hex::encode).collect(),
                 data: hex::encode(view.data()),
                 stack_height: view.stack_height(),
-                instruction_id: view.instruction().program_id_index(),
-                top_instruction_id: view.top_instruction.program_id_index,
+                instruction_id: view.instruction.program_id_index(),
+                compiled_instruction_id: view.compiled_instruction.program_id_index,
             }
         }
     }
