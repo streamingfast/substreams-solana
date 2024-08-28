@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## 0.13.0
 
-This is a relatively important update of the library bringing in improved version of the utilities the exist to iterate over instructions as well access to pre-resolved Instruction's program id and accounts. The goal of this update was to make it easier to process instruction(s), reducing the overall code needed to link inner instructions and to avoid the need to implement account resolution.
+This is a relatively important update of the library bringing in improved version of the utilities the exist to iterate over instructions as well as access to pre-resolved Instruction's program id and accounts. The goal of this update was to make it easier to process instruction(s), reducing the overall code needed to link inner instructions and to avoid the need to implement account resolution.
 
 Essentially, this update adds a new [InstructionView](https://docs.rs/substreams-solana/latest/substreams_solana/block_view/struct.InstructionView.html) replacing the older one. This [InstructionView](https://docs.rs/substreams-solana/latest/substreams_solana/block_view/struct.InstructionView.html) has [resolved progam id](https://docs.rs/substreams-solana/latest/substreams_solana/block_view/struct.InstructionView.html#method.program_id), [resolved accounts](https://docs.rs/substreams-solana/latest/substreams_solana/block_view/struct.InstructionView.html#method.accounts) and provides access to the transaction, compiled instruction and inner instructions (if viewing a `CompiledInstruction`).
 
@@ -14,7 +14,7 @@ You now get an [InstructionView](https://docs.rs/substreams-solana/latest/substr
 
 And you can now also iterates over all instructions, root or inner(s), of a transaction via [ConfirmedTransaction::walk_instructions](https://docs.rs/substreams-solana/latest/substreams_solana/pb/sf/solana/type/v1/struct.ConfirmedTransaction.html#method.walk_instructions).
 
-The same method are available on the [Block] directly to easily walk over all instructions found in a block.
+The same method are available on the [Block](https://docs.rs/substreams-solana/latest/substreams_solana/pb/sf/solana/type/v1/struct.Block.html) directly to easily walk over all instructions found in a block.
 
 In this update, we also added an [Address](https://docs.rs/substreams-solana/latest/substreams_solana/struct.Address.html) type that is a simply wrapper today around a `&Vec<u8>` with methods to more easily convert to `base58` string (`to_string`) as well as testing equality against various other types. For now `Address` is mainly used within the new [InstructionView](https://docs.rs/substreams-solana/latest/substreams_solana/block_view/struct.InstructionView.html) struct, we plan on using it more where possible in the future.
 
