@@ -104,17 +104,30 @@ impl<'a> InstructionView<'a> {
         self.instruction.stack_height()
     }
 
-    // /// The actual iterated raw instruction abstracted by the Instruction trait.
-    // /// The [InstructionView] provides a more convenient way to access the various
-    // /// information about the instruction since it offers "resolved" program id and
-    // /// accounts instead of the raw account indices.
-    // ///
-    // /// - [Self::program_id] returns the resolved program id of the instruction.
-    // /// - [Self::accounts] returns the resolved accounts of the instruction.
-    // /// - [Self::data] returns the data of the instruction.
-    // pub fn instruction<'b: 'a>(&'b self) -> impl Instruction + 'a + 'b {
-    //     &self.instruction
-    // }
+    /// The inner instruction at index `at` of the compiled instruction that holds this instruction.
+    /// It's the direct children of [Self::compiled_instruction]. This method will return
+    /// [None] if the current instruction is not a compiled instruction, e.g. [Self::is_root()] == false.
+    /// or if the inner instruction at the given index does not exist.
+    ///
+    /// If you are **not** in a compiled instruction and would still like to get a specific
+    /// inner instruction, open an issue and we will consider adding a method to do that.
+    pub fn inner_instruction(&'a self, at: usize) -> Option<InstructionView<'a>> {
+        match self.compiled_index {
+            None => None,
+            Some(index) => self
+                .meta()
+                .inner_instructions
+                .iter()
+                .find(|i: &&pb::InnerInstructions| i.index == index as u32)
+                .and_then(|i| i.instructions.get(at))
+                .map(|instruction| InstructionView {
+                    instruction: Box::new(instruction),
+                    trx: self.trx,
+                    compiled_instruction: self.compiled_instruction,
+                    compiled_index: None,
+                }),
+        }
+    }
 
     /// The inner instructions of the compiled instruction that holds this instruction.
     /// It's the direct children of [Self::compiled_instruction]. This method will return
@@ -142,7 +155,6 @@ impl<'a> InstructionView<'a> {
             compiled_index: None,
         })
     }
-
     /// Returns true if the instruction your are iterating over is a compiled instruction,
     /// e.g. a root instruction of a transaction or false if the view represents an
     /// inner instruction.
@@ -335,6 +347,7 @@ impl pb::TransactionStatusMeta {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::LazyLock;
     use std::vec;
 
     use crate::{block_view::InstructionView, pb::sf::solana::r#type::v1 as pb, Instruction};
@@ -510,71 +523,7 @@ mod tests {
 
     walk_instructions_test_case!(
         full_deep_nested_instructions,
-        pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
-                signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
-                    account_keys: vec![
-                        hex("a0"),
-                        hex("a1"),
-                        hex("a2"),
-                        hex("a3"),
-                        hex("a4"),
-                        hex("a5"),
-                        hex("a6")
-                    ],
-                    instructions: vec![
-                        pb::CompiledInstruction {
-                            program_id_index: 1,
-                            accounts: vec![0, 1],
-                            data: vec![1, 2, 3],
-                        },
-                        pb::CompiledInstruction {
-                            program_id_index: 2,
-                            accounts: vec![1, 2],
-                            data: vec![6, 7, 8],
-                        },
-                        pb::CompiledInstruction {
-                            program_id_index: 3,
-                            accounts: vec![2],
-                            data: vec![9, 10, 11],
-                        }
-                    ],
-                    ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
-                inner_instructions: vec![
-                    pb::InnerInstructions {
-                        index: 0,
-                        instructions: vec![pb::InnerInstruction {
-                            program_id_index: 4,
-                            accounts: vec![0, 1],
-                            data: vec![4, 5, 6],
-                            stack_height: Some(1),
-                        },],
-                    },
-                    pb::InnerInstructions {
-                        index: 2,
-                        instructions: vec![
-                            pb::InnerInstruction {
-                                program_id_index: 5,
-                                accounts: vec![0, 1],
-                                data: vec![10, 11, 12],
-                                stack_height: Some(1),
-                            },
-                            pb::InnerInstruction {
-                                program_id_index: 6,
-                                accounts: vec![1, 2],
-                                data: vec![13, 14, 15],
-                                stack_height: Some(2),
-                            }
-                        ],
-                    }
-                ],
-                ..Default::default()
-            }),
-        },
+        FULL_TRX.clone(),
         vec![
             ComparableInstructionView {
                 program_id: str("a1"),
@@ -665,71 +614,7 @@ mod tests {
 
     compiled_instructions_test_case!(
         full_deep_nested_instructions,
-        pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
-                signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
-                    account_keys: vec![
-                        hex("a0"),
-                        hex("a1"),
-                        hex("a2"),
-                        hex("a3"),
-                        hex("a4"),
-                        hex("a5"),
-                        hex("a6")
-                    ],
-                    instructions: vec![
-                        pb::CompiledInstruction {
-                            program_id_index: 1,
-                            accounts: vec![0, 1],
-                            data: vec![1, 2, 3],
-                        },
-                        pb::CompiledInstruction {
-                            program_id_index: 2,
-                            accounts: vec![1, 2],
-                            data: vec![6, 7, 8],
-                        },
-                        pb::CompiledInstruction {
-                            program_id_index: 3,
-                            accounts: vec![2],
-                            data: vec![9, 10, 11],
-                        }
-                    ],
-                    ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
-                inner_instructions: vec![
-                    pb::InnerInstructions {
-                        index: 0,
-                        instructions: vec![pb::InnerInstruction {
-                            program_id_index: 4,
-                            accounts: vec![0, 1],
-                            data: vec![4, 5, 6],
-                            stack_height: Some(1),
-                        },],
-                    },
-                    pb::InnerInstructions {
-                        index: 2,
-                        instructions: vec![
-                            pb::InnerInstruction {
-                                program_id_index: 5,
-                                accounts: vec![0, 1],
-                                data: vec![10, 11, 12],
-                                stack_height: Some(1),
-                            },
-                            pb::InnerInstruction {
-                                program_id_index: 6,
-                                accounts: vec![1, 2],
-                                data: vec![13, 14, 15],
-                                stack_height: Some(2),
-                            }
-                        ],
-                    }
-                ],
-                ..Default::default()
-            }),
-        },
+        FULL_TRX.clone(),
         vec![
             ComparableInstructionView {
                 program_id: str("a1"),
@@ -757,6 +642,39 @@ mod tests {
             },
         ]
     );
+
+    #[test]
+    pub fn compiled_instruction_inner_instruction() {
+        let trx = FULL_TRX.clone();
+
+        let view = trx.compiled_instructions().nth(2).unwrap();
+
+        assert_eq!(
+            ComparableInstructionView {
+                program_id: str("a5"),
+                accounts: vec![str("a0"), str("a1")],
+                data: str("0a0b0c"),
+                stack_height: 1,
+                instruction_id: 5,
+                compiled_instruction_id: 3,
+            },
+            view.inner_instruction(0).unwrap().into()
+        );
+
+        assert_eq!(
+            ComparableInstructionView {
+                program_id: str("a6"),
+                accounts: vec![str("a1"), str("a2")],
+                data: str("0d0e0f"),
+                stack_height: 2,
+                instruction_id: 6,
+                compiled_instruction_id: 3,
+            },
+            view.inner_instruction(1).unwrap().into()
+        );
+
+        assert_eq!(true, view.inner_instruction(2).is_none());
+    }
 
     #[derive(Debug, PartialEq)]
     struct ComparableInstructionView {
@@ -790,4 +708,71 @@ mod tests {
     fn hex(s: &str) -> Vec<u8> {
         ::hex::decode(s).unwrap()
     }
+
+    static FULL_TRX: LazyLock<pb::ConfirmedTransaction> =
+        LazyLock::new(|| pb::ConfirmedTransaction {
+            transaction: Some(pb::Transaction {
+                signatures: vec![vec![1, 2, 3]],
+                message: Some(pb::Message {
+                    account_keys: vec![
+                        hex("a0"),
+                        hex("a1"),
+                        hex("a2"),
+                        hex("a3"),
+                        hex("a4"),
+                        hex("a5"),
+                        hex("a6"),
+                    ],
+                    instructions: vec![
+                        pb::CompiledInstruction {
+                            program_id_index: 1,
+                            accounts: vec![0, 1],
+                            data: vec![1, 2, 3],
+                        },
+                        pb::CompiledInstruction {
+                            program_id_index: 2,
+                            accounts: vec![1, 2],
+                            data: vec![6, 7, 8],
+                        },
+                        pb::CompiledInstruction {
+                            program_id_index: 3,
+                            accounts: vec![2],
+                            data: vec![9, 10, 11],
+                        },
+                    ],
+                    ..Default::default()
+                }),
+            }),
+            meta: Some(pb::TransactionStatusMeta {
+                inner_instructions: vec![
+                    pb::InnerInstructions {
+                        index: 0,
+                        instructions: vec![pb::InnerInstruction {
+                            program_id_index: 4,
+                            accounts: vec![0, 1],
+                            data: vec![4, 5, 6],
+                            stack_height: Some(1),
+                        }],
+                    },
+                    pb::InnerInstructions {
+                        index: 2,
+                        instructions: vec![
+                            pb::InnerInstruction {
+                                program_id_index: 5,
+                                accounts: vec![0, 1],
+                                data: vec![10, 11, 12],
+                                stack_height: Some(1),
+                            },
+                            pb::InnerInstruction {
+                                program_id_index: 6,
+                                accounts: vec![1, 2],
+                                data: vec![13, 14, 15],
+                                stack_height: Some(2),
+                            },
+                        ],
+                    },
+                ],
+                ..Default::default()
+            }),
+        });
 }
