@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+* Added `InstructionView.inner_instruction(at)` to retrieve an inner instruction at a specific index `at`. This works only if the view is currently on a `CompiledInstruction` (e.g. `InstructionView.is_root() == true`).
+
 ## 0.13.0
 
 This is a relatively important update of the library bringing in improved version of the utilities the exist to iterate over instructions as well as access to pre-resolved Instruction's program id and accounts. The goal of this update was to make it easier to process instruction(s), reducing the overall code needed to link inner instructions and to avoid the need to implement account resolution.
