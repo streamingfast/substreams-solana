@@ -4,16 +4,35 @@ Substreams development kit for Solana chains, contains Rust Firehose Block model
 
 ## Usage
 
+* `Cargo.toml`:
+
 ```toml
 [package]
-name = "substreams-solana"
+name = "my-package"
 version = "0.1.0"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-substreams-solana = "0.1.0"
+substreams-solana = "0.13"
+```
+
+* If you have other protobuf objects that refer to the `sf.solana.type.v1` types, create a `buf.gen.yaml` file like this before you run `substreams protogen` or `buf generate`:
+
+```yaml
+version: v1
+plugins:
+- plugin: buf.build/community/neoeinstein-prost:v0.4.0
+  out: ./src/pb
+  opt:
+    - file_descriptor_set=false
+    - extern_path=.sf.solana.type.v1=::substreams_solana::pb::sf::solana::type::v1
+
+- plugin: buf.build/community/neoeinstein-prost-crate:v0.4.0
+  out: ./src/pb
+  opt:
+    - no_features
 ```
 
 ## Development
