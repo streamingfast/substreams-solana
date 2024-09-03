@@ -23,13 +23,13 @@ substreams-solana = "0.13"
 ```yaml
 version: v1
 plugins:
-- plugin: buf.build/community/neoeinstein-prost:v0.4.0
+- plugin: buf.build/community/neoeinstein-prost:v0.2.2 # check compatibility with your 'prost' crate
   out: ./src/pb
   opt:
     - file_descriptor_set=false
     - extern_path=.sf.solana.type.v1=::substreams_solana::pb::sf::solana::type::v1
 
-- plugin: buf.build/community/neoeinstein-prost-crate:v0.4.0
+- plugin: buf.build/community/neoeinstein-prost-crate:v0.3.1 # check compatibility with your 'prost' crate
   out: ./src/pb
   opt:
     - no_features
