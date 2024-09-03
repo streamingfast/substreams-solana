@@ -18,7 +18,11 @@ crate-type = ["cdylib"]
 substreams-solana = "0.13"
 ```
 
-* If you have other protobuf objects that refer to the `sf.solana.type.v1` types, create a `buf.gen.yaml` file like this before you run `substreams protogen` or `buf generate`:
+### Protobuf Extern paths
+
+If you have other protobuf objects that refer to the `sf.solana.type.v1` types, like the [Solana Substreams Foundational Modules](https://github.com/streamingfast/substreams-foundational-modules/tree/develop/solana-common) you must inform the Protobuf code generator to generate `subtreams_solana::pb::sf::solana::type::v1` for messages pointing to `sf.solana.type.v1`.
+
+Add or modify the `buf.gen.yaml` file so that it has an `extern_path=...` option defined like this:
 
 ```yaml
 version: v1
@@ -34,6 +38,8 @@ plugins:
   opt:
     - no_features
 ```
+
+When you run `substreams protogen` or `buf generate proto`, it will probably generate links to `substreams-solana` library enabling you to leverage all helpers this library is adding.
 
 ## Development
 
