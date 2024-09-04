@@ -39,7 +39,7 @@ plugins:
     - no_features
 ```
 
-When you run `substreams protogen` or `buf generate proto`, it will probably generate links to `substreams-solana` library enabling you to leverage all helpers this library is adding.
+When you run `substreams protogen` or `buf generate proto`, it will generate links to `substreams-solana` library enabling you to leverage all helpers added by the library to Solana types.
 
 ## Development
 
