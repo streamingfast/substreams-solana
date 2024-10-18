@@ -3,7 +3,7 @@ members = ["core", "macro", "substreams-solana"]
 resolver = "2"
 
 [workspace.package]
-version = "0.14.0"
+version = "0.14.1"
 edition = "2021"
 description = "Substreams development kit for Solana chains, contains Block model and helpers."
 homepage = "https://substreams.streamingfast.io/"
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 readme = "README.md"
 keywords = ["substreams", "solana", "streamingfast", "firehose", "thegraph"]
 categories = ["api-bindings", "external-ffi-bindings", "wasm"]
-rust-version = "1.80"
+rust-version = "1.60"
 
 [workspace.dependencies]
 substreams-solana = { version = "0.14.0", path = "./substreams-solana" }
