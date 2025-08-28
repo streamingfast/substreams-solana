@@ -338,7 +338,7 @@ impl<'a> Iterator for AllInstructionIterator<'a> {
 
 impl pb::TransactionStatusMeta {
     pub fn meta(&self) -> Option<&pb::TransactionStatusMeta> {
-        if self.err.is_some() || self.inner_instructions_none {
+        if self.err.is_some() || self.inner_instructions.is_empty() {
             return None;
         }
         return Some(self);
