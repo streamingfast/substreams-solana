@@ -2,6 +2,9 @@ global:
   language: rust
   variant: library
 release:
+  pre-build-hooks:
+    - ./.sfreleaser.pre-release.sh "{{ .release.Version }}"
+
   # Must be specified in publish order
   rust-crates:
   - substreams-solana-macro
