@@ -3,7 +3,7 @@ members = ["core", "macro", "substreams-solana"]
 resolver = "2"
 
 [workspace.package]
-version = "0.14.1"
+version = "0.14.2"
 edition = "2021"
 description = "Substreams development kit for Solana chains, contains Block model and helpers."
 homepage = "https://substreams.streamingfast.io/"
@@ -15,9 +15,9 @@ categories = ["api-bindings", "external-ffi-bindings", "wasm"]
 rust-version = "1.60"
 
 [workspace.dependencies]
-substreams-solana = { version = "0.14.0", path = "./substreams-solana" }
-substreams-solana-core = { version = "0.14.0", path = "./core" }
-substreams-solana-macro = { version = "0.14.0", path = "./macro" }
+substreams-solana = { version = "0.14.2", path = "./substreams-solana" }
+substreams-solana-core = { version = "0.14.2", path = "./core" }
+substreams-solana-macro = { version = "0.14.2", path = "./macro" }
 
 [profile.release]
 lto = true
