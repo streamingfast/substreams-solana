@@ -4,22 +4,16 @@ use std::collections::HashMap;
 impl pb::Block {
     /// Iterates over successful transactions in given block.
     pub fn transactions(&self) -> impl Iterator<Item = &pb::ConfirmedTransaction> {
-        self.transactions.iter().filter(|trx| -> bool {
-            if let Some(meta) = &trx.meta {
-                return meta.err.is_none();
-            }
-            false
-        })
+        self.transactions
+            .iter()
+            .filter(|trx: &&pb::ConfirmedTransaction| -> bool { trx.is_successful() })
     }
 
     /// Iterates over successful transactions in given block and take ownership.
     pub fn transactions_owned(self) -> impl Iterator<Item = pb::ConfirmedTransaction> {
-        self.transactions.into_iter().filter(|trx| -> bool {
-            if let Some(meta) = &trx.meta {
-                return meta.err.is_none();
-            }
-            false
-        })
+        self.transactions
+            .into_iter()
+            .filter(pb::ConfirmedTransaction::is_successful)
     }
 
     /// Iterates over compiled instructions of the block. Refer to [pb::ConfirmedTransaction::compiled_instructions]
@@ -265,6 +259,11 @@ impl pb::ConfirmedTransaction {
         }
     }
 
+    /// Returns true if this [ConfirmedTransaction] was successful, e.g. its meta.err is None
+    pub fn is_successful(&self) -> bool {
+        self.meta.as_ref().map(|m| m.err.is_none()).unwrap_or(false)
+    }
+
     pub fn meta(&self) -> Option<&pb::ConfirmedTransaction> {
         if self.meta.is_none() || self.meta.as_ref().unwrap().meta().is_none() {
             return None;
@@ -353,6 +352,53 @@ mod tests {
     use crate::{block_view::InstructionView, pb::sf::solana::r#type::v1 as pb, Instruction};
     use paste::paste;
     use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_is_successful_with_no_error() {
+        let trx = pb::ConfirmedTransaction {
+            transaction: Some(pb::Transaction {
+                signatures: vec![vec![1, 2, 3]],
+                message: Some(pb::Message::default()),
+            }),
+            meta: Some(pb::TransactionStatusMeta {
+                err: None,
+                ..Default::default()
+            }),
+        };
+
+        assert_eq!(true, trx.is_successful());
+    }
+
+    #[test]
+    fn test_is_successful_with_error() {
+        let trx = pb::ConfirmedTransaction {
+            transaction: Some(pb::Transaction {
+                signatures: vec![vec![1, 2, 3]],
+                message: Some(pb::Message::default()),
+            }),
+            meta: Some(pb::TransactionStatusMeta {
+                err: Some(pb::TransactionError {
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+        };
+
+        assert_eq!(false, trx.is_successful());
+    }
+
+    #[test]
+    fn test_is_successful_with_no_meta() {
+        let trx = pb::ConfirmedTransaction {
+            transaction: Some(pb::Transaction {
+                signatures: vec![vec![1, 2, 3]],
+                message: Some(pb::Message::default()),
+            }),
+            meta: None,
+        };
+
+        assert_eq!(false, trx.is_successful());
+    }
 
     #[test]
     fn it_iterates_over_successful_transaction() {
