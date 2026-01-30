@@ -143,6 +143,8 @@ pub struct TransactionStatusMeta {
     /// Set to `None` for txs executed on earlier versions.
     #[prost(uint64, optional, tag="16")]
     pub compute_units_consumed: ::core::option::Option<u64>,
+    #[prost(uint64, optional, tag="17")]
+    pub cost_units: ::core::option::Option<u64>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
