@@ -17,3 +17,6 @@ num_enum = "0.7.0"
 substreams = "0.6"
 substreams-solana-core = { workspace = true }
 substreams-solana-macro = { workspace = true }
+
+[features]
+quick-protobuf = ["substreams-solana-core/quick-protobuf"]

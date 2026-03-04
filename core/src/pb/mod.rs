@@ -1,4 +1,7 @@
 // @generated
+#[cfg(feature = "quick-protobuf")]
+pub mod quick;
+
 pub mod sf {
     pub mod solana {
         pub mod r#type {
