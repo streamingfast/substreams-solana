@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.15.0
+
+* Bumped `substreams` dependency to 0.7 (see [Upgrade notes](https://github.com/streamingfast/substreams-rs/releases/tag/v0.7.0)). This migrates foundational store Protobuf definitions to v2.
+
+* Bumped the pinned Rust toolchain from 1.83 to 1.96 (`rust-toolchain.toml`).
+
+* Raised the declared minimum supported Rust version (MSRV) from 1.60 to 1.85, the real floor now that `substreams` 0.7 (toolchain 1.82+) and modern transitive dependencies rely on the `edition2024` feature (stabilized in 1.85).
+
 ## 0.14.3
 
 * Add "cost_units" to TransactionStatusMeta message.

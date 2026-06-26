@@ -26,7 +26,7 @@ impl pb::Block {
 
     /// Iterates over all instructions, including inner instructions, of the block. Refer to
     /// [pb::ConfirmedTransaction::walk_instructions] for details about the iteration.
-    pub fn walk_instructions(&self) -> impl Iterator<Item = InstructionView> {
+    pub fn walk_instructions(&self) -> impl Iterator<Item = InstructionView<'_>> {
         self.transactions()
             .map(|trx| trx.walk_instructions())
             .flatten()
@@ -56,7 +56,7 @@ impl<'a> InstructionView<'a> {
     /// # let instruction_view: substreams_solana_core::block_view::InstructionView = unimplemented!();
     /// let program_id = instruction_view.program_id().to_string();
     /// ```
-    pub fn program_id(&self) -> Address {
+    pub fn program_id(&self) -> Address<'a> {
         // &self.resolved_program_id
         self.trx
             .account_at(self.instruction.program_id_index() as u8)
