@@ -12,12 +12,12 @@ categories.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-prost = { version = "0.13" }
-prost-types = "0.13"
-bs58 = "0.4.0"
+prost = { version = "0.14" }
+prost-types = "0.14"
+bs58 = "0.5.1"
 
 [build-dependencies]
-prost-build = "0.13"
+prost-build = "0.14"
 
 [dev-dependencies]
 anyhow = "1"
