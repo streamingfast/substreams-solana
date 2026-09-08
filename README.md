@@ -15,7 +15,7 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-substreams-solana = "0.13"
+substreams-solana = "0.15"
 ```
 
 ### Protobuf Extern paths
@@ -25,21 +25,15 @@ If you have other protobuf objects that refer to the `sf.solana.type.v1` types, 
 Add or modify the `buf.gen.yaml` file so that it has an `extern_path=...` option defined like this:
 
 ```yaml
-version: v1
+version: v2
 plugins:
-- plugin: buf.build/community/neoeinstein-prost:v0.2.2 # check compatibility with your 'prost' crate
-  out: ./src/pb
-  opt:
-    - file_descriptor_set=false
-    - extern_path=.sf.solana.type.v1=::substreams_solana::pb::sf::solana::type::v1
-
-- plugin: buf.build/community/neoeinstein-prost-crate:v0.3.1 # check compatibility with your 'prost' crate
-  out: ./src/pb
-  opt:
-    - no_features
+  - remote: buf.build/anthropics/buffa
+    out: ./src/pb
+    opt:
+      - extern_path=.sf.solana.type.v1=::substreams_solana::pb::sf::solana::type::v1
 ```
 
-When you run `substreams protogen` or `buf generate proto`, it will generate links to `substreams-solana` library enabling you to leverage all helpers added by the library to Solana types.
+When you run `buf generate`, it will generate links to `substreams-solana` library enabling you to leverage all helpers added by the library to Solana types.
 
 ## Development
 
@@ -50,8 +44,10 @@ This means changes to Protobuf files must be manually re-generated and commit, s
 ### Regenerate Rust Firehose Block from Protobuf
 
 ```
-./gen.sh
+buf generate
 ```
+
+The schema module is declared in `buf.gen.yaml`.
 
 ## Community
 

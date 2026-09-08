@@ -1,12 +1,10 @@
-
-version: v1
+version: v2
 plugins:
-- plugin: buf.build/community/neoeinstein-prost:v0.4.0
-  out: ./core/src/pb
-  opt:
-    - file_descriptor_set=false
+  - remote: buf.build/anthropics/buffa
+    out: ./core/src/pb
+    opt:
+      - lazy_views=true
+      - unknown_fields=false
 
-- plugin: buf.build/community/neoeinstein-prost-crate:v0.4.1
-  out: ./core/src/pb
-  opt:
-    - no_features
+inputs:
+  - module: buf.build/streamingfast/firehose-solana

@@ -173,18 +173,18 @@ impl<'a> InstructionView<'a> {
 
     /// The transactions's message that holds this instruction.
     pub fn message(&self) -> &'a pb::Message {
-        self.transaction().message.as_ref().unwrap()
+        &self.transaction().message
     }
 
     /// The transactions's meta that holds this instruction
     pub fn meta(&self) -> &'a pb::TransactionStatusMeta {
-        self.trx.meta.as_ref().unwrap()
+        &self.trx.meta
     }
 
     /// The transaction that holds this instruction, for easy access to the message
     /// and other related transaction data.
     pub fn transaction(&self) -> &'a pb::Transaction {
-        self.trx.transaction.as_ref().unwrap()
+        &self.trx.transaction
     }
 
     /// The confirmed transaction that holds this instruction, for easy access to the message
@@ -212,17 +212,19 @@ impl pb::ConfirmedTransaction {
     /// ```
     pub fn compiled_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
         let mut inner_instructions_by_parent = HashMap::new();
-        if let Some(meta) = self.meta.as_ref() {
+        if let Some(meta) = self.meta.as_option() {
             for inner_instructions in meta.inner_instructions.iter() {
                 inner_instructions_by_parent.insert(inner_instructions.index, inner_instructions);
             }
         }
 
         self.transaction
-            .iter()
+            .as_option()
+            .into_iter()
             .flat_map(|trx| {
                 trx.message
-                    .iter()
+                    .as_option()
+                    .into_iter()
                     .flat_map(|m| m.instructions.iter().enumerate())
             })
             .map(move |(i, inst)| InstructionView {
@@ -241,10 +243,10 @@ impl pb::ConfirmedTransaction {
     /// provides convenient access to the resolved [InstructionView::program_id] and [InstructionView::accounts]
     /// instead of the raw program id index & account indices.
     pub fn walk_instructions<'a>(&'a self) -> impl Iterator<Item = InstructionView<'a>> + 'a {
-        let trx = self.transaction.as_ref().unwrap();
+        let trx = &self.transaction;
 
         let mut inner_instructions_by_parent = HashMap::new();
-        if let Some(meta) = self.meta.as_ref() {
+        if let Some(meta) = self.meta.as_option() {
             for inner_instructions in meta.inner_instructions.iter() {
                 inner_instructions_by_parent.insert(inner_instructions.index, inner_instructions);
             }
@@ -252,7 +254,7 @@ impl pb::ConfirmedTransaction {
 
         AllInstructionIterator {
             confirmed_transaction: self,
-            message: trx.message.as_ref().unwrap(),
+            message: &trx.message,
             inner_instructions_by_parent,
             top_level_instruction_index: 0,
             inner_instruction_index: None,
@@ -261,11 +263,14 @@ impl pb::ConfirmedTransaction {
 
     /// Returns true if this [ConfirmedTransaction] was successful, e.g. its meta.err is None
     pub fn is_successful(&self) -> bool {
-        self.meta.as_ref().map(|m| m.err.is_none()).unwrap_or(false)
+        self.meta
+            .as_option()
+            .map(|m| m.err.is_unset())
+            .unwrap_or(false)
     }
 
     pub fn meta(&self) -> Option<&pb::ConfirmedTransaction> {
-        if self.meta.is_none() || self.meta.as_ref().unwrap().meta().is_none() {
+        if self.meta.is_unset() || self.meta.meta().is_none() {
             return None;
         }
 
@@ -337,7 +342,7 @@ impl<'a> Iterator for AllInstructionIterator<'a> {
 
 impl pb::TransactionStatusMeta {
     pub fn meta(&self) -> Option<&pb::TransactionStatusMeta> {
-        if self.err.is_some() || self.inner_instructions.is_empty() {
+        if self.err.is_set() || self.inner_instructions.is_empty() {
             return None;
         }
         return Some(self);
@@ -356,14 +361,16 @@ mod tests {
     #[test]
     fn test_is_successful_with_no_error() {
         let trx = pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message::default()),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
-                err: None,
+                message: pb::Message::default().into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
+                err: buffa::MessageField::none(),
                 ..Default::default()
-            }),
+            }
+            .into(),
         };
 
         assert_eq!(true, trx.is_successful());
@@ -372,16 +379,19 @@ mod tests {
     #[test]
     fn test_is_successful_with_error() {
         let trx = pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message::default()),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
-                err: Some(pb::TransactionError {
+                message: pb::Message::default().into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
+                err: pb::TransactionError {
                     ..Default::default()
-                }),
+                }
+                .into(),
                 ..Default::default()
-            }),
+            }
+            .into(),
         };
 
         assert_eq!(false, trx.is_successful());
@@ -390,11 +400,12 @@ mod tests {
     #[test]
     fn test_is_successful_with_no_meta() {
         let trx = pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message::default()),
-            }),
-            meta: None,
+                message: pb::Message::default().into(),
+            }
+            .into(),
+            meta: buffa::MessageField::none(),
         };
 
         assert_eq!(false, trx.is_successful());
@@ -405,33 +416,39 @@ mod tests {
         let block = pb::Block {
             transactions: vec![
                 pb::ConfirmedTransaction {
-                    transaction: Some(pb::Transaction {
+                    transaction: pb::Transaction {
                         signatures: vec![vec![1, 2, 3]],
-                        message: None,
-                    }),
-                    meta: Some(pb::TransactionStatusMeta {
-                        err: Some(pb::TransactionError {
+                        message: buffa::MessageField::none(),
+                    }
+                    .into(),
+                    meta: pb::TransactionStatusMeta {
+                        err: pb::TransactionError {
                             ..Default::default()
-                        }),
+                        }
+                        .into(),
                         ..Default::default()
-                    }),
+                    }
+                    .into(),
                 },
                 pb::ConfirmedTransaction {
-                    transaction: Some(pb::Transaction {
+                    transaction: pb::Transaction {
                         signatures: vec![vec![4, 5, 6]],
-                        message: None,
-                    }),
-                    meta: Some(pb::TransactionStatusMeta {
-                        err: None,
+                        message: buffa::MessageField::none(),
+                    }
+                    .into(),
+                    meta: pb::TransactionStatusMeta {
+                        err: buffa::MessageField::none(),
                         ..Default::default()
-                    }),
+                    }
+                    .into(),
                 },
                 pb::ConfirmedTransaction {
-                    transaction: Some(pb::Transaction {
+                    transaction: pb::Transaction {
                         signatures: vec![vec![7, 8, 9]],
-                        message: None,
-                    }),
-                    meta: None,
+                        message: buffa::MessageField::none(),
+                    }
+                    .into(),
+                    meta: buffa::MessageField::none(),
                 },
             ],
             ..Default::default()
@@ -440,14 +457,16 @@ mod tests {
         let mut iter = block.transactions();
         assert_eq!(
             Some(&pb::ConfirmedTransaction {
-                transaction: Some(pb::Transaction {
+                transaction: pb::Transaction {
                     signatures: vec![vec![4, 5, 6]],
-                    message: None
-                }),
-                meta: Some(pb::TransactionStatusMeta {
-                    err: None,
+                    message: buffa::MessageField::none()
+                }
+                .into(),
+                meta: pb::TransactionStatusMeta {
+                    err: buffa::MessageField::none(),
                     ..Default::default()
-                })
+                }
+                .into()
             }),
             iter.next()
         );
@@ -475,19 +494,23 @@ mod tests {
     walk_instructions_test_case!(
         empty_trx,
         pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
+                message: pb::Message {
                     account_keys: vec![hex("00"), hex("01"), hex("02")],
                     ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
-                err: Some(pb::TransactionError {
+                }
+                .into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
+                err: pb::TransactionError {
                     ..Default::default()
-                }),
+                }
+                .into(),
                 ..Default::default()
-            }),
+            }
+            .into(),
         },
         Vec::<ComparableInstructionView>::new()
     );
@@ -495,9 +518,9 @@ mod tests {
     walk_instructions_test_case!(
         single_top_level_instruction,
         pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
+                message: pb::Message {
                     account_keys: vec![hex("a0"), hex("a1"), hex("a2")],
                     instructions: vec![pb::CompiledInstruction {
                         program_id_index: 1,
@@ -505,11 +528,14 @@ mod tests {
                         data: vec![1, 2, 3],
                     }],
                     ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
+                }
+                .into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
                 ..Default::default()
-            }),
+            }
+            .into(),
         },
         vec![ComparableInstructionView {
             program_id: str("a1"),
@@ -524,9 +550,9 @@ mod tests {
     walk_instructions_test_case!(
         multiple_top_level_instruction,
         pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
+                message: pb::Message {
                     account_keys: vec![hex("a0"), hex("a1"), hex("a2")],
                     instructions: vec![
                         pb::CompiledInstruction {
@@ -541,11 +567,14 @@ mod tests {
                         }
                     ],
                     ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
+                }
+                .into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
                 ..Default::default()
-            }),
+            }
+            .into(),
         },
         vec![
             ComparableInstructionView {
@@ -641,19 +670,23 @@ mod tests {
     compiled_instructions_test_case!(
         empty_trx,
         pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
+                message: pb::Message {
                     account_keys: vec![hex("00"), hex("01"), hex("02")],
                     ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
-                err: Some(pb::TransactionError {
+                }
+                .into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
+                err: pb::TransactionError {
                     ..Default::default()
-                }),
+                }
+                .into(),
                 ..Default::default()
-            }),
+            }
+            .into(),
         },
         Vec::<ComparableInstructionView>::new()
     );
@@ -757,9 +790,9 @@ mod tests {
 
     static FULL_TRX: LazyLock<pb::ConfirmedTransaction> =
         LazyLock::new(|| pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
+                message: pb::Message {
                     account_keys: vec![
                         hex("a0"),
                         hex("a1"),
@@ -787,9 +820,11 @@ mod tests {
                         },
                     ],
                     ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
+                }
+                .into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
                 inner_instructions: vec![
                     pb::InnerInstructions {
                         index: 0,
@@ -819,6 +854,7 @@ mod tests {
                     },
                 ],
                 ..Default::default()
-            }),
+            }
+            .into(),
         });
 }

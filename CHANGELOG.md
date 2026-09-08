@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+* Switched protobuf encoding and decoding from `prost` to [buffa](https://github.com/anthropics/buffa), `prost` is no longer a dependency.
+
+  Generated types differ from `prost` in three ways: enum fields are `EnumValue<E>` rather than `i32` (compare against the variant directly), singular message fields are `MessageField<T>` rather than `Option<T>` and deref to a default instance, and encoding is infallible.
+
+  Code reading a singular message field no longer needs to unwrap it: `trx.transaction.message` replaces `trx.transaction.as_ref().unwrap().message.as_ref().unwrap()`. Use `.as_option()` where an `Option` is still wanted, `.is_set()` / `.is_unset()` for presence, and `MessageField::none()` to clear.
+
+  Reading a singular message field that is unset now yields a default instead of panicking, so
+  `walk_instructions` on a transaction with no message yields nothing rather than panicking.
+  `ConfirmedTransaction::hash()` and `id()` still panic on a transaction with no signatures.
+
+* Updated the `sf.solana.type.v1` block model, which adds `TransactionConfig`, `Message.version`
+  and `Message.transaction_config`.
+
+* Changed `pb` generation to `buf generate` with the `buf.build/anthropics/buffa` plugin, reading the schema module from `buf.gen.yaml`. `gen.sh` and its `substreams protogen` invocation are gone.
+
+* Removed the unused `substreams`, `anyhow` and `num_enum` dependencies from `substreams-solana`.
+
 ## 0.15.0
 
 * Bumped `substreams` dependency to 0.7 (see [Upgrade notes](https://github.com/streamingfast/substreams-rs/releases/tag/v0.7.0)). This migrates foundational store Protobuf definitions to v2.
