@@ -349,6 +349,262 @@ impl pb::TransactionStatusMeta {
     }
 }
 
+/// Block accessors over buffa's lazy views, mirroring the owned `pb::Block`
+/// methods above.
+///
+/// A lazy view borrows the wire buffer and decodes deferred fields on access,
+/// so every accessor here is fallible where the owned equivalent is not, and
+/// the resolved-address types hold `&[u8]` rather than `&Vec<u8>`.
+pub mod lazy {
+    use crate::base58;
+    use crate::pb::sf::solana::r#type::v1::__buffa::lazy_view::{
+        BlockLazyView, ConfirmedTransactionLazyView, MessageLazyView,
+    };
+    use buffa::DecodeError;
+
+    /// A resolved Solana address borrowed from the wire buffer.
+    pub struct AddressRef<'a>(pub &'a [u8]);
+
+    impl AddressRef<'_> {
+        pub fn to_string(&self) -> String {
+            base58::encode(&self.0)
+        }
+    }
+
+    impl std::fmt::Debug for AddressRef<'_> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_str(&base58::encode(&self.0))
+        }
+    }
+
+    impl std::fmt::Display for AddressRef<'_> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_str(&base58::encode(&self.0))
+        }
+    }
+
+    impl AsRef<[u8]> for AddressRef<'_> {
+        fn as_ref(&self) -> &[u8] {
+            self.0
+        }
+    }
+
+    /// One instruction reached through a lazy transaction, carrying the account
+    /// table needed to resolve its indices.
+    pub struct LazyInstructionView<'a> {
+        pub program_id_index: u32,
+        pub accounts: &'a [u8],
+        pub data: &'a [u8],
+        pub stack_height: Option<u32>,
+        resolved: &'a [&'a [u8]],
+    }
+
+    impl<'a> LazyInstructionView<'a> {
+        /// The resolved program id, or an all-zero address if the index falls
+        /// outside the transaction's account table.
+        pub fn program_id(&self) -> AddressRef<'a> {
+            self.account_at(self.program_id_index as u8)
+        }
+
+        /// The resolved accounts this instruction names.
+        pub fn accounts(&self) -> Vec<AddressRef<'a>> {
+            self.accounts
+                .iter()
+                .map(|index| self.account_at(*index))
+                .collect()
+        }
+
+        pub fn data(&self) -> &'a [u8] {
+            self.data
+        }
+
+        pub fn stack_height(&self) -> u32 {
+            self.stack_height.unwrap_or(0)
+        }
+
+        pub fn maybe_stack_height(&self) -> Option<u32> {
+            self.stack_height
+        }
+
+        fn account_at(&self, index: u8) -> AddressRef<'a> {
+            static EMPTY: &[u8] = &[];
+            AddressRef(
+                self.resolved
+                    .get(index as usize)
+                    .copied()
+                    .unwrap_or(EMPTY),
+            )
+        }
+    }
+
+    /// A lazy transaction with its account table resolved once.
+    ///
+    /// A lazy view re-decodes a deferred field on every access, so the account
+    /// table and inner instructions are read up front and held here rather than
+    /// re-read per instruction.
+    pub struct LazyTransaction<'a> {
+        resolved: Vec<&'a [u8]>,
+        message: Option<MessageLazyView<'a>>,
+        inner: Vec<(u32, Vec<LazyInner<'a>>)>,
+    }
+
+    struct LazyInner<'a> {
+        program_id_index: u32,
+        accounts: &'a [u8],
+        data: &'a [u8],
+        stack_height: Option<u32>,
+    }
+
+    impl<'a> LazyTransaction<'a> {
+        /// Resolves a transaction's account table and inner instructions.
+        pub fn new(trx: &ConfirmedTransactionLazyView<'a>) -> Result<Self, DecodeError> {
+            let mut resolved: Vec<&'a [u8]> = Vec::new();
+            let mut message = None;
+
+            if let Some(transaction) = trx.transaction.get()? {
+                if let Some(msg) = transaction.message.get()? {
+                    for key in msg.account_keys.iter() {
+                        resolved.push(key);
+                    }
+                    message = Some(msg);
+                }
+            }
+
+            let mut inner = Vec::new();
+            if let Some(meta) = trx.meta.get()? {
+                for addr in meta.loaded_writable_addresses.iter() {
+                    resolved.push(addr);
+                }
+                for addr in meta.loaded_readonly_addresses.iter() {
+                    resolved.push(addr);
+                }
+
+                for group in meta.inner_instructions.iter() {
+                    let group = group?;
+                    let mut instructions = Vec::new();
+                    for instruction in group.instructions.iter() {
+                        let instruction = instruction?;
+                        instructions.push(LazyInner {
+                            program_id_index: instruction.program_id_index,
+                            accounts: instruction.accounts,
+                            data: instruction.data,
+                            stack_height: instruction.stack_height,
+                        });
+                    }
+                    inner.push((group.index, instructions));
+                }
+            }
+
+            Ok(Self {
+                resolved,
+                message,
+                inner,
+            })
+        }
+
+        /// The resolved account table: message account keys, then the meta's
+        /// loaded writable and readonly addresses, in that order.
+        pub fn resolved_accounts(&self) -> &[&'a [u8]] {
+            &self.resolved
+        }
+
+        pub fn account_at(&self, index: u8) -> AddressRef<'a> {
+            static EMPTY: &[u8] = &[];
+            AddressRef(self.resolved.get(index as usize).copied().unwrap_or(EMPTY))
+        }
+
+        /// Every instruction, compiled ones followed by their inner
+        /// instructions, matching the owned `walk_instructions` order.
+        pub fn walk_instructions(
+            &'a self,
+        ) -> Result<impl Iterator<Item = LazyInstructionView<'a>> + 'a, DecodeError> {
+            let mut out: Vec<LazyInstructionView<'a>> = Vec::new();
+
+            if let Some(message) = self.message.as_ref() {
+                for (i, instruction) in message.instructions.iter().enumerate() {
+                    let instruction = instruction?;
+                    out.push(LazyInstructionView {
+                        program_id_index: instruction.program_id_index,
+                        accounts: instruction.accounts,
+                        data: instruction.data,
+                        stack_height: None,
+                        resolved: &self.resolved,
+                    });
+
+                    if let Some((_, instructions)) =
+                        self.inner.iter().find(|(index, _)| *index == i as u32)
+                    {
+                        for inner in instructions {
+                            out.push(LazyInstructionView {
+                                program_id_index: inner.program_id_index,
+                                accounts: inner.accounts,
+                                data: inner.data,
+                                stack_height: inner.stack_height,
+                                resolved: &self.resolved,
+                            });
+                        }
+                    }
+                }
+            }
+
+            Ok(out.into_iter())
+        }
+
+        /// The compiled (top-level) instructions only.
+        pub fn compiled_instructions(
+            &'a self,
+        ) -> Result<impl Iterator<Item = LazyInstructionView<'a>> + 'a, DecodeError> {
+            let mut out: Vec<LazyInstructionView<'a>> = Vec::new();
+
+            if let Some(message) = self.message.as_ref() {
+                for instruction in message.instructions.iter() {
+                    let instruction = instruction?;
+                    out.push(LazyInstructionView {
+                        program_id_index: instruction.program_id_index,
+                        accounts: instruction.accounts,
+                        data: instruction.data,
+                        stack_height: None,
+                        resolved: &self.resolved,
+                    });
+                }
+            }
+
+            Ok(out.into_iter())
+        }
+    }
+
+    impl<'a> BlockLazyView<'a> {
+        /// Successful transactions, skipping any that fail to decode.
+        pub fn transactions(
+            &self,
+        ) -> impl Iterator<Item = ConfirmedTransactionLazyView<'a>> + '_ {
+            self.transactions
+                .iter()
+                .filter_map(|trx| trx.ok())
+                .filter(|trx| is_successful(trx))
+        }
+
+        /// Successful transactions, surfacing decode errors instead of skipping.
+        pub fn try_transactions(
+            &self,
+        ) -> impl Iterator<Item = Result<ConfirmedTransactionLazyView<'a>, DecodeError>> + '_
+        {
+            self.transactions
+                .iter()
+                .filter(|trx| trx.as_ref().map(is_successful).unwrap_or(true))
+        }
+    }
+
+    fn is_successful(trx: &ConfirmedTransactionLazyView<'_>) -> bool {
+        trx.meta
+            .get()
+            .ok()
+            .flatten()
+            .map(|meta| meta.err.is_unset())
+            .unwrap_or(false)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::LazyLock;
@@ -788,7 +1044,7 @@ mod tests {
         ::hex::decode(s).unwrap()
     }
 
-    static FULL_TRX: LazyLock<pb::ConfirmedTransaction> =
+    pub(super) static FULL_TRX: LazyLock<pb::ConfirmedTransaction> =
         LazyLock::new(|| pb::ConfirmedTransaction {
             transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
@@ -857,4 +1113,66 @@ mod tests {
             }
             .into(),
         });
+}
+
+#[cfg(test)]
+mod lazy_parity_tests {
+    use super::lazy::LazyTransaction;
+    use super::tests::FULL_TRX;
+    use crate::pb::sf::solana::r#type::v1 as pb;
+    use crate::pb::sf::solana::r#type::v1::__buffa::lazy_view::ConfirmedTransactionLazyView;
+    use buffa::view::LazyMessageView;
+    use buffa::Message;
+    use pretty_assertions::assert_eq;
+
+    /// The lazy walk must visit the same instructions, in the same order, and
+    /// resolve the same program ids as the owned walk.
+    #[test]
+    fn lazy_walk_instructions_matches_owned() {
+        let owned: &pb::ConfirmedTransaction = &FULL_TRX;
+        let bytes = owned.encode_to_vec();
+        let view = ConfirmedTransactionLazyView::decode_lazy(&bytes).expect("valid transaction");
+
+        let expected: Vec<(String, Vec<u8>, u32)> = owned
+            .walk_instructions()
+            .map(|inst| {
+                (
+                    inst.program_id().to_string(),
+                    inst.data().clone(),
+                    inst.stack_height(),
+                )
+            })
+            .collect();
+
+        let trx = LazyTransaction::new(&view).expect("resolves");
+        let actual: Vec<(String, Vec<u8>, u32)> = trx
+            .walk_instructions()
+            .expect("walks")
+            .map(|inst| {
+                (
+                    inst.program_id().to_string(),
+                    inst.data().to_vec(),
+                    inst.stack_height(),
+                )
+            })
+            .collect();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn lazy_resolved_accounts_matches_owned() {
+        let owned: &pb::ConfirmedTransaction = &FULL_TRX;
+        let bytes = owned.encode_to_vec();
+        let view = ConfirmedTransactionLazyView::decode_lazy(&bytes).expect("valid transaction");
+
+        let expected: Vec<&Vec<u8>> = owned.resolved_accounts();
+        let trx = LazyTransaction::new(&view).expect("resolves");
+        let actual = trx.resolved_accounts();
+
+        assert_eq!(expected.len(), actual.len());
+        for (want, got) in expected.iter().zip(actual.iter()) {
+            assert_eq!(want.as_slice(), *got);
+        }
+    }
 }
