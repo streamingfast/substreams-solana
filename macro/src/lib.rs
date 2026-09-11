@@ -11,8 +11,8 @@
 //! # }
 //! ```
 extern crate proc_macro;
-use proc_macro::{Delimiter, Group, Literal, Punct, Spacing, TokenStream, TokenTree};
 use bs58;
+use proc_macro::{Delimiter, Group, Literal, Punct, Spacing, TokenStream, TokenTree};
 
 /// Strips any outer `Delimiter::None` groups from the input,
 /// returning a `TokenStream` consisting of the innermost
@@ -33,7 +33,6 @@ fn ignore_groups(mut input: TokenStream) -> TokenStream {
     }
 }
 
-
 /// Macro for converting sequence of string literals containing base58 encoded data
 /// into an array of bytes.
 ///
@@ -50,7 +49,7 @@ pub fn b58(input: TokenStream) -> TokenStream {
                 };
 
                 input.retain(|c| !r#"""#.contains(c));
-                match  bs58::decode(input).into_vec() {
+                match bs58::decode(input).into_vec() {
                     Ok(bytes) => {
                         let mut tokens: Vec<TokenTree> = vec![];
                         let mut has_seen_first = false;
@@ -66,13 +65,12 @@ pub fn b58(input: TokenStream) -> TokenStream {
                         foo.extend(tokens.into_iter());
                         let out = TokenTree::Group(Group::new(Delimiter::Bracket, foo));
                         return TokenStream::from(out);
-
-                    },
+                    }
                     Err(e) => {
                         panic!("failed to decode string literal `{}`", e)
                     }
                 }
-            },
+            }
             unexpected => panic!("expected string literal, got `{}`", unexpected),
         };
     }
