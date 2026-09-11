@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+* Added `block_view::lazy`, accessors over buffa's lazy views: `BlockLazyView::transactions()`, `LazyTransaction` (`resolved_accounts`, `account_at`, `walk_instructions`, `compiled_instructions`), `LazyInstructionView` (`program_id`, `accounts`, `data`, `stack_height`, `is_root`) and `AddressRef`, the borrowed counterpart of `Address`.
+
+  A lazy view defers validation to field access, so `transactions()` yields `Result` items and reports decode failures. `transactions_lossy()` drops undecodable entries instead. A transaction whose `meta` is corrupt is reported rather than presented as a failed transaction.
+
+  `AddressRef` compares against the shapes a program id is written as, so `instruction.program_id() == MY_PROGRAM_ID` works without allocating.
+
+  The lazy walk matches the owned one on ordering, on resolved program ids, on `maybe_stack_height` (compiled instructions report `Some(0)`), and on keeping the last of two inner-instruction groups that claim the same index.
+
 * Switched protobuf encoding and decoding from `prost` to [buffa](https://github.com/anthropics/buffa), `prost` is no longer a dependency.
 
   Generated types differ from `prost` in three ways: enum fields are `EnumValue<E>` rather than `i32` (compare against the variant directly), singular message fields are `MessageField<T>` rather than `Option<T>` and deref to a default instance, and encoding is infallible.

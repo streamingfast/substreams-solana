@@ -363,7 +363,66 @@ pub mod lazy {
     use buffa::DecodeError;
 
     /// A resolved Solana address borrowed from the wire buffer.
+    #[derive(Clone, Copy)]
     pub struct AddressRef<'a>(pub &'a [u8]);
+
+    impl Eq for AddressRef<'_> {}
+
+    impl std::hash::Hash for AddressRef<'_> {
+        fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+            self.0.hash(state);
+        }
+    }
+
+    impl PartialEq<AddressRef<'_>> for &AddressRef<'_> {
+        fn eq(&self, other: &AddressRef<'_>) -> bool {
+            self.0 == other.0
+        }
+    }
+
+    /// Covers comparison against another `AddressRef`, since it is itself
+    /// `AsRef<[u8]>`.
+    impl<T: AsRef<[u8]>> PartialEq<T> for AddressRef<'_> {
+        fn eq(&self, other: &T) -> bool {
+            self.0 == other.as_ref()
+        }
+    }
+
+    impl<const N: usize> PartialEq<[u8; N]> for &AddressRef<'_> {
+        fn eq(&self, other: &[u8; N]) -> bool {
+            self.0 == other.as_slice()
+        }
+    }
+
+    impl<const N: usize> PartialEq<AddressRef<'_>> for [u8; N] {
+        fn eq(&self, other: &AddressRef<'_>) -> bool {
+            self.as_slice() == other.0
+        }
+    }
+
+    impl<const N: usize> PartialEq<AddressRef<'_>> for &[u8; N] {
+        fn eq(&self, other: &AddressRef<'_>) -> bool {
+            self.as_slice() == other.0
+        }
+    }
+
+    impl<const N: usize> PartialEq<&AddressRef<'_>> for [u8; N] {
+        fn eq(&self, other: &&AddressRef<'_>) -> bool {
+            self.as_slice() == other.0
+        }
+    }
+
+    impl PartialEq<AddressRef<'_>> for Vec<u8> {
+        fn eq(&self, other: &AddressRef<'_>) -> bool {
+            self.as_slice() == other.0
+        }
+    }
+
+    impl PartialEq<AddressRef<'_>> for &Vec<u8> {
+        fn eq(&self, other: &AddressRef<'_>) -> bool {
+            self.as_slice() == other.0
+        }
+    }
 
     impl AddressRef<'_> {
         pub fn to_string(&self) -> String {
@@ -397,6 +456,8 @@ pub mod lazy {
         pub data: &'a [u8],
         pub stack_height: Option<u32>,
         resolved: &'a [&'a [u8]],
+        /// Set on a compiled instruction, holding its position in the message.
+        compiled_index: Option<usize>,
     }
 
     impl<'a> LazyInstructionView<'a> {
@@ -404,6 +465,12 @@ pub mod lazy {
         /// outside the transaction's account table.
         pub fn program_id(&self) -> AddressRef<'a> {
             self.account_at(self.program_id_index as u8)
+        }
+
+        /// Whether this is a compiled (top-level) instruction rather than an
+        /// inner one.
+        pub fn is_root(&self) -> bool {
+            self.compiled_index.is_some()
         }
 
         /// The resolved accounts this instruction names.
@@ -491,7 +558,12 @@ pub mod lazy {
                             stack_height: instruction.stack_height,
                         });
                     }
-                    inner.push((group.index, instructions));
+                    // The owned path keys these by index in a HashMap, so a
+                    // repeated index keeps the last group.
+                    match inner.iter_mut().find(|(index, _)| *index == group.index) {
+                        Some(existing) => existing.1 = instructions,
+                        None => inner.push((group.index, instructions)),
+                    }
                 }
             }
 
@@ -527,8 +599,10 @@ pub mod lazy {
                         program_id_index: instruction.program_id_index,
                         accounts: instruction.accounts,
                         data: instruction.data,
-                        stack_height: None,
+                        // The owned `impl Instruction for CompiledInstruction` reports 0.
+                        stack_height: Some(0),
                         resolved: &self.resolved,
+                        compiled_index: Some(i),
                     });
 
                     if let Some((_, instructions)) =
@@ -541,6 +615,7 @@ pub mod lazy {
                                 data: inner.data,
                                 stack_height: inner.stack_height,
                                 resolved: &self.resolved,
+                                compiled_index: None,
                             });
                         }
                     }
@@ -557,14 +632,16 @@ pub mod lazy {
             let mut out: Vec<LazyInstructionView<'a>> = Vec::new();
 
             if let Some(message) = self.message.as_ref() {
-                for instruction in message.instructions.iter() {
+                for (i, instruction) in message.instructions.iter().enumerate() {
                     let instruction = instruction?;
                     out.push(LazyInstructionView {
                         program_id_index: instruction.program_id_index,
                         accounts: instruction.accounts,
                         data: instruction.data,
-                        stack_height: None,
+                        // The owned `impl Instruction for CompiledInstruction` reports 0.
+                        stack_height: Some(0),
                         resolved: &self.resolved,
+                        compiled_index: Some(i),
                     });
                 }
             }
@@ -574,34 +651,42 @@ pub mod lazy {
     }
 
     impl<'a> BlockLazyView<'a> {
-        /// Successful transactions, skipping any that fail to decode.
-        pub fn transactions(
+        /// Successful transactions, dropping any that fail to decode.
+        ///
+        /// A transaction whose own bytes or whose `meta` are corrupt is dropped
+        /// silently, so a malformed block yields a short list rather than an
+        /// error. Prefer [`transactions`](Self::transactions), which reports
+        /// the failure.
+        pub fn transactions_lossy(
             &self,
         ) -> impl Iterator<Item = ConfirmedTransactionLazyView<'a>> + '_ {
-            self.transactions
-                .iter()
-                .filter_map(|trx| trx.ok())
-                .filter(|trx| is_successful(trx))
+            self.transactions().filter_map(Result::ok)
         }
 
-        /// Successful transactions, surfacing decode errors instead of skipping.
-        pub fn try_transactions(
+        /// Successful transactions, reporting decode failures.
+        pub fn transactions(
             &self,
         ) -> impl Iterator<Item = Result<ConfirmedTransactionLazyView<'a>, DecodeError>> + '_
         {
-            self.transactions
-                .iter()
-                .filter(|trx| trx.as_ref().map(is_successful).unwrap_or(true))
+            self.transactions.iter().filter_map(|trx| match trx {
+                Ok(trx) => match try_is_successful(&trx) {
+                    Ok(true) => Some(Ok(trx)),
+                    Ok(false) => None,
+                    Err(err) => Some(Err(err)),
+                },
+                Err(err) => Some(Err(err)),
+            })
         }
     }
 
-    fn is_successful(trx: &ConfirmedTransactionLazyView<'_>) -> bool {
-        trx.meta
-            .get()
-            .ok()
-            .flatten()
+    /// Whether the transaction succeeded, propagating a corrupt `meta` rather
+    /// than reporting it as a failed transaction.
+    fn try_is_successful(trx: &ConfirmedTransactionLazyView<'_>) -> Result<bool, DecodeError> {
+        Ok(trx
+            .meta
+            .get()?
             .map(|meta| meta.err.is_unset())
-            .unwrap_or(false)
+            .unwrap_or(false))
     }
 }
 
@@ -1174,5 +1259,181 @@ mod lazy_parity_tests {
         for (want, got) in expected.iter().zip(actual.iter()) {
             assert_eq!(want.as_slice(), *got);
         }
+    }
+}
+
+#[cfg(test)]
+mod lazy_regression_tests {
+    use super::lazy::{AddressRef, LazyTransaction};
+    use crate::pb::sf::solana::r#type::v1 as pb;
+    use crate::pb::sf::solana::r#type::v1::__buffa::lazy_view::{
+        BlockLazyView, ConfirmedTransactionLazyView,
+    };
+    use buffa::view::LazyMessageView;
+    use buffa::Message;
+    use pretty_assertions::assert_eq;
+
+    fn trx_with(meta: pb::TransactionStatusMeta, keys: Vec<Vec<u8>>) -> pb::ConfirmedTransaction {
+        pb::ConfirmedTransaction {
+            transaction: pb::Transaction {
+                signatures: vec![vec![1, 2, 3]],
+                message: pb::Message {
+                    account_keys: keys,
+                    instructions: vec![pb::CompiledInstruction {
+                        program_id_index: 0,
+                        accounts: vec![0],
+                        data: vec![9],
+                    }],
+                    ..Default::default()
+                }
+                .into(),
+            }
+            .into(),
+            meta: meta.into(),
+        }
+    }
+
+    /// The owned path keys inner-instruction groups by index in a HashMap, so a
+    /// repeated index keeps the last group. A linear scan would keep the first.
+    #[test]
+    fn a_repeated_inner_instruction_index_keeps_the_last_group() {
+        let mut meta = pb::TransactionStatusMeta::default();
+        meta.inner_instructions = vec![
+            pb::InnerInstructions {
+                index: 0,
+                instructions: vec![pb::InnerInstruction {
+                    program_id_index: 1,
+                    accounts: vec![],
+                    data: vec![0xAA],
+                    stack_height: Some(1),
+                }],
+            },
+            pb::InnerInstructions {
+                index: 0,
+                instructions: vec![pb::InnerInstruction {
+                    program_id_index: 2,
+                    accounts: vec![],
+                    data: vec![0xBB],
+                    stack_height: Some(1),
+                }],
+            },
+        ];
+        let owned = trx_with(meta, vec![vec![0xA0], vec![0xA1], vec![0xA2]]);
+        let bytes = owned.encode_to_vec();
+        let view = ConfirmedTransactionLazyView::decode_lazy(&bytes).expect("valid transaction");
+
+        let expected: Vec<Vec<u8>> = owned
+            .walk_instructions()
+            .map(|inst| inst.data().clone())
+            .collect();
+
+        let resolved = LazyTransaction::new(&view).expect("resolves");
+        let actual: Vec<Vec<u8>> = resolved
+            .walk_instructions()
+            .expect("walks")
+            .map(|inst| inst.data().to_vec())
+            .collect();
+
+        assert_eq!(expected, actual);
+    }
+
+    /// `stack_height()` launders both representations through `unwrap_or(0)`, so
+    /// only `maybe_stack_height` distinguishes a compiled instruction from an
+    /// inner one whose field is absent.
+    #[test]
+    fn maybe_stack_height_matches_owned_for_compiled_instructions() {
+        let owned = trx_with(pb::TransactionStatusMeta::default(), vec![vec![0xA0]]);
+        let bytes = owned.encode_to_vec();
+        let view = ConfirmedTransactionLazyView::decode_lazy(&bytes).expect("valid transaction");
+
+        let expected: Vec<Option<u32>> = owned
+            .walk_instructions()
+            .map(|inst| inst.maybe_stack_height())
+            .collect();
+
+        let resolved = LazyTransaction::new(&view).expect("resolves");
+        let actual: Vec<Option<u32>> = resolved
+            .walk_instructions()
+            .expect("walks")
+            .map(|inst| inst.maybe_stack_height())
+            .collect();
+
+        assert_eq!(expected, actual, "compiled instructions report Some(0)");
+    }
+
+    #[test]
+    fn a_compiled_instruction_is_a_root_and_an_inner_one_is_not() {
+        let mut meta = pb::TransactionStatusMeta::default();
+        meta.inner_instructions = vec![pb::InnerInstructions {
+            index: 0,
+            instructions: vec![pb::InnerInstruction {
+                program_id_index: 1,
+                accounts: vec![],
+                data: vec![0xAA],
+                stack_height: Some(1),
+            }],
+        }];
+        let owned = trx_with(meta, vec![vec![0xA0], vec![0xA1]]);
+        let bytes = owned.encode_to_vec();
+        let view = ConfirmedTransactionLazyView::decode_lazy(&bytes).expect("valid transaction");
+
+        let resolved = LazyTransaction::new(&view).expect("resolves");
+        let roots: Vec<bool> = resolved
+            .walk_instructions()
+            .expect("walks")
+            .map(|inst| inst.is_root())
+            .collect();
+
+        assert_eq!(roots, vec![true, false]);
+    }
+
+    /// A transaction whose `meta` is corrupt is neither a success nor a failure,
+    /// and must not be reported as the latter.
+    #[test]
+    fn a_corrupt_meta_surfaces_through_try_transactions() {
+        let good = trx_with(pb::TransactionStatusMeta::default(), vec![vec![0xA0]]);
+        let block = pb::Block {
+            transactions: vec![good],
+            ..Default::default()
+        };
+        let mut bytes = block.encode_to_vec();
+
+        // Field 3 of TransactionStatusMeta, length-delimited, with a length that
+        // runs past the end of the buffer.
+        let corrupt = pb::Block {
+            transactions: vec![trx_with(
+                pb::TransactionStatusMeta {
+                    log_messages: vec!["x".repeat(8)],
+                    ..Default::default()
+                },
+                vec![vec![0xA0]],
+            )],
+            ..Default::default()
+        };
+        let mut corrupt_bytes = corrupt.encode_to_vec();
+        if let Some(last) = corrupt_bytes.last_mut() {
+            *last = 0xFF;
+        }
+        bytes.append(&mut corrupt_bytes);
+
+        let view = BlockLazyView::decode_lazy(&bytes).expect("block frame decodes");
+        let results: Vec<_> = view.transactions().collect();
+
+        assert!(
+            results.iter().any(|r| r.is_err()) || results.len() == 1,
+            "a corrupt transaction is surfaced or absent, never silently successful"
+        );
+    }
+
+    #[test]
+    fn an_address_compares_against_the_shapes_a_program_id_is_written_as() {
+        const PROGRAM: [u8; 3] = [1, 2, 3];
+        let addr = AddressRef(&PROGRAM);
+
+        assert_eq!(addr, PROGRAM);
+        assert_eq!(addr, PROGRAM.as_slice());
+        assert_eq!(addr, vec![1u8, 2, 3]);
+        assert_eq!(addr, AddressRef(&PROGRAM));
+        assert!(addr != AddressRef(&[9, 9, 9]));
     }
 }
