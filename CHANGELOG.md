@@ -31,6 +31,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 * Removed the unused `substreams`, `anyhow` and `num_enum` dependencies from `substreams-solana`.
 
+## 0.15.1
+
+* Regenerated the `sf.solana.type.v1` block model against the current schema, which adds the fields a
+  v1 transaction carries: `Message.version` (0 for a v0 message, 1 for a v1 message, unset for a legacy
+  one) and `Message.transaction_config`, a new `TransactionConfig` message holding the compute budget
+  a v1 message carries inline (`priority_fee`, `compute_unit_limit`, `loaded_accounts_data_size_limit`,
+  `heap_size`).
+
+  Existing modules keep working untouched. The wire format is backward compatible, and `Message.versioned`
+  is unchanged. Rebuild against this version only if you need to read the compute budget or to tell a v0
+  message apart from a v1 one.
+
+* Added the `RewardType` variants `DeactivatedStake` and `VatDebit`, which the same regeneration picked up.
+
 ## 0.15.0
 
 * Bumped `substreams` dependency to 0.7 (see [Upgrade notes](https://github.com/streamingfast/substreams-rs/releases/tag/v0.7.0)). This migrates foundational store Protobuf definitions to v2.
