@@ -15,7 +15,7 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-substreams-solana = "0.15"
+substreams-solana = "0.16.0-beta.1"
 ```
 
 ### Protobuf Extern paths
