@@ -34,5 +34,6 @@
 //!   element is a view over the instruction, has resolved accounts and provides access to the transaction, compiled
 //!   instruction  of the transaction.  It make it much easier to walk the whole instruction tree of a
 //!   transaction. Refer to the method documentation for more information about it.
+pub use substreams_solana_core::buffa;
 pub use substreams_solana_core::{address::Address, base58, block_view, pb, Instruction};
 pub use substreams_solana_macro::b58;

@@ -12,15 +12,12 @@ categories.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-prost = { version = "0.13" }
-prost-types = "0.13"
+buffa = { version = "0.9", default-features = false, features = ["std", "fast-utf8"] }
+buffa-types = { version = "0.9", default-features = false }
 bs58 = "0.4.0"
 
-[build-dependencies]
-prost-build = "0.13"
 
 [dev-dependencies]
-anyhow = "1"
 hex = "0.4"
 paste = "1"
 pretty_assertions = "1.4"

@@ -6,6 +6,8 @@ use pb::sf::solana::r#type::v1::{CompiledInstruction, InnerInstruction, Transact
 use crate::pb::sf::solana::r#type::v1::ConfirmedTransaction;
 
 pub mod address;
+pub use buffa;
+
 pub mod pb;
 
 /// Helpers to deal with block sources.
@@ -160,17 +162,17 @@ impl ConfirmedTransaction {
     /// Returns the transaction id as a base58 string. Use [Self::hash] method to get the
     /// transaction's hash as a byte array if it's what you are after
     ///
-    /// This is a simpler helper over `self.transaction.as_ref().unwrap().id()`.
+    /// Panics if the transaction has no signatures.
     pub fn id(&self) -> String {
-        self.transaction.as_ref().unwrap().id()
+        self.transaction.id()
     }
 
     /// Returns the transaction's hash as a byte array. Use [Self::id] method to get the
     /// transaction's id as a base58 string if it's what you are after.
     ///
-    /// This is a simpler helper over `self.transaction.as_ref().unwrap().hash()`.
+    /// Panics if the transaction has no signatures.
     pub fn hash(&self) -> &[u8] {
-        self.transaction.as_ref().unwrap().hash()
+        self.transaction.hash()
     }
 
     /// Returns the resolved accounts for the transaction. The resolved accounts are the
@@ -186,8 +188,8 @@ impl ConfirmedTransaction {
     /// let accounts: Vec<_> = trx.resolved_accounts().iter().map(base58::encode).collect();
     /// ```
     pub fn resolved_accounts(&self) -> Vec<&Vec<u8>> {
-        let meta = self.meta.as_ref().unwrap();
-        let message = self.transaction.as_ref().unwrap().message.as_ref().unwrap();
+        let meta = &self.meta;
+        let message = &self.transaction.message;
 
         let mut accounts = vec![];
         accounts.extend(message.account_keys.iter());
@@ -203,20 +205,13 @@ impl ConfirmedTransaction {
     pub fn account_at<'a>(&'a self, index: u8) -> Address<'a> {
         let mut i: usize = index as usize;
 
-        let account_keys = &self
-            .transaction
-            .as_ref()
-            .unwrap()
-            .message
-            .as_ref()
-            .unwrap()
-            .account_keys;
+        let account_keys = &self.transaction.message.account_keys;
 
         if i < account_keys.len() {
             return Address(&account_keys[i]);
         }
 
-        let meta = self.meta.as_ref().unwrap();
+        let meta = &self.meta;
 
         i = i - account_keys.len();
         if i < meta.loaded_writable_addresses.len() {
@@ -254,18 +249,21 @@ mod tests {
     #[test]
     fn it_resolves_account_correctly() {
         let trx = pb::ConfirmedTransaction {
-            transaction: Some(pb::Transaction {
+            transaction: pb::Transaction {
                 signatures: vec![vec![1, 2, 3]],
-                message: Some(pb::Message {
+                message: pb::Message {
                     account_keys: vec![bytes("a0"), bytes("a1"), bytes("a2")],
                     ..Default::default()
-                }),
-            }),
-            meta: Some(pb::TransactionStatusMeta {
+                }
+                .into(),
+            }
+            .into(),
+            meta: pb::TransactionStatusMeta {
                 loaded_writable_addresses: vec![bytes("a3"), bytes("a4")],
                 loaded_readonly_addresses: vec![bytes("a5"), bytes("a6")],
                 ..Default::default()
-            }),
+            }
+            .into(),
         };
 
         assert_eq!(
