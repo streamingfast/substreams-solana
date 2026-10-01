@@ -6,11 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## 0.16.0
 
-* Re-added `RewardType::VATDebit`, the reward type a validator admission ticket burn carries, with
-  `RewardType::VatDebit` as an alias.
+* Re-added `RewardType::VATDebit`, with `RewardType::VatDebit` as an alias.
 
-* Stable release of `0.16.0-beta.1`. Its entry below covers the `prost` to `buffa` migration and the
-  lazy view accessors.
+* Stable release of `0.16.0-beta.1`, whose entry below covers the `prost` to `buffa` migration.
 
 ## 0.16.0-beta.1
 
