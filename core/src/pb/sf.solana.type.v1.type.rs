@@ -11,6 +11,13 @@ pub enum RewardType {
     Staking = 3i32,
     Voting = 4i32,
     DeactivatedStake = 5i32,
+    /// Burn of the validator admission ticket. The reward carries a negative lamports value.
+    VATDebit = 6i32,
+}
+impl RewardType {
+    ///Idiomatic alias for [`Self::VATDebit`]; `Debug` prints the variant name.
+    #[allow(non_upper_case_globals)]
+    pub const VatDebit: Self = Self::VATDebit;
 }
 impl ::core::default::Default for RewardType {
     fn default() -> Self {
@@ -26,6 +33,7 @@ impl ::buffa::Enumeration for RewardType {
             3i32 => ::core::option::Option::Some(Self::Staking),
             4i32 => ::core::option::Option::Some(Self::Voting),
             5i32 => ::core::option::Option::Some(Self::DeactivatedStake),
+            6i32 => ::core::option::Option::Some(Self::VATDebit),
             _ => ::core::option::Option::None,
         }
     }
@@ -40,6 +48,7 @@ impl ::buffa::Enumeration for RewardType {
             Self::Staking => "Staking",
             Self::Voting => "Voting",
             Self::DeactivatedStake => "DeactivatedStake",
+            Self::VATDebit => "VATDebit",
         }
     }
     fn from_proto_name(name: &str) -> ::core::option::Option<Self> {
@@ -50,6 +59,7 @@ impl ::buffa::Enumeration for RewardType {
             "Staking" => ::core::option::Option::Some(Self::Staking),
             "Voting" => ::core::option::Option::Some(Self::Voting),
             "DeactivatedStake" => ::core::option::Option::Some(Self::DeactivatedStake),
+            "VATDebit" => ::core::option::Option::Some(Self::VATDebit),
             _ => ::core::option::Option::None,
         }
     }
@@ -61,6 +71,7 @@ impl ::buffa::Enumeration for RewardType {
             Self::Staking,
             Self::Voting,
             Self::DeactivatedStake,
+            Self::VATDebit,
         ]
     }
 }
