@@ -13,6 +13,9 @@ pub enum RewardType {
     DeactivatedStake = 5i32,
     /// Burn of the validator admission ticket. The reward carries a negative lamports value.
     VATDebit = 6i32,
+    /// Share of the block revenue a validator pays to a stake account (SIMD-0123). It comes in addition to the stake
+    /// account's Staking reward, under the same pubkey.
+    BlockRevenueSharing = 7i32,
 }
 impl RewardType {
     ///Idiomatic alias for [`Self::VATDebit`]; `Debug` prints the variant name.
@@ -34,6 +37,7 @@ impl ::buffa::Enumeration for RewardType {
             4i32 => ::core::option::Option::Some(Self::Voting),
             5i32 => ::core::option::Option::Some(Self::DeactivatedStake),
             6i32 => ::core::option::Option::Some(Self::VATDebit),
+            7i32 => ::core::option::Option::Some(Self::BlockRevenueSharing),
             _ => ::core::option::Option::None,
         }
     }
@@ -49,6 +53,7 @@ impl ::buffa::Enumeration for RewardType {
             Self::Voting => "Voting",
             Self::DeactivatedStake => "DeactivatedStake",
             Self::VATDebit => "VATDebit",
+            Self::BlockRevenueSharing => "BlockRevenueSharing",
         }
     }
     fn from_proto_name(name: &str) -> ::core::option::Option<Self> {
@@ -60,6 +65,9 @@ impl ::buffa::Enumeration for RewardType {
             "Voting" => ::core::option::Option::Some(Self::Voting),
             "DeactivatedStake" => ::core::option::Option::Some(Self::DeactivatedStake),
             "VATDebit" => ::core::option::Option::Some(Self::VATDebit),
+            "BlockRevenueSharing" => {
+                ::core::option::Option::Some(Self::BlockRevenueSharing)
+            }
             _ => ::core::option::Option::None,
         }
     }
@@ -72,6 +80,7 @@ impl ::buffa::Enumeration for RewardType {
             Self::Voting,
             Self::DeactivatedStake,
             Self::VATDebit,
+            Self::BlockRevenueSharing,
         ]
     }
 }
@@ -97,6 +106,12 @@ pub struct Block {
     ///
     /// Field 20: `slot`
     pub slot: u64,
+    /// Time at which the leader produced the block, in nanoseconds since the Unix epoch, taken from the
+    /// Alpenglow block footer. The value is part of the block, so every node reports the same one. Unset
+    /// when the block has no footer, which is the case for every block produced before Alpenglow.
+    ///
+    /// Field 21: `block_producer_time_nanos`
+    pub block_producer_time_nanos: ::core::option::Option<u64>,
 }
 impl ::core::fmt::Debug for Block {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
@@ -109,6 +124,7 @@ impl ::core::fmt::Debug for Block {
             .field("block_time", &self.block_time)
             .field("block_height", &self.block_height)
             .field("slot", &self.slot)
+            .field("block_producer_time_nanos", &self.block_producer_time_nanos)
             .finish()
     }
 }
@@ -118,6 +134,15 @@ impl Block {
     ///
     /// Format: `type.googleapis.com/<fully.qualified.TypeName>`
     pub const TYPE_URL: &'static str = "type.googleapis.com/sf.solana.type.v1.Block";
+}
+impl Block {
+    #[must_use = "with_* setters return `self` by value; assign or chain the result"]
+    #[inline]
+    ///Sets [`Self::block_producer_time_nanos`] to `Some(value)`, consuming and returning `self`.
+    pub fn with_block_producer_time_nanos(mut self, value: u64) -> Self {
+        self.block_producer_time_nanos = Some(value);
+        self
+    }
 }
 ::buffa::impl_default_instance!(Block);
 impl ::buffa::MessageName for Block {
@@ -186,6 +211,9 @@ impl ::buffa::Message for Block {
         if self.slot != 0u64 {
             size += 2u64 + ::buffa::types::uint64_encoded_len(self.slot) as u64;
         }
+        if let Some(v) = self.block_producer_time_nanos {
+            size += 2u64 + ::buffa::types::uint64_encoded_len(v) as u64;
+        }
         ::buffa::saturate_size(size)
     }
     fn write_to(
@@ -238,6 +266,9 @@ impl ::buffa::Message for Block {
         }
         if self.slot != 0u64 {
             ::buffa::types::put_uint64_field(20u32, self.slot, buf);
+        }
+        if let Some(v) = self.block_producer_time_nanos {
+            ::buffa::types::put_uint64_field(21u32, v, buf);
         }
     }
     fn merge_field(
@@ -325,6 +356,15 @@ impl ::buffa::Message for Block {
                 )?;
                 self.slot = ::buffa::types::decode_uint64(buf)?;
             }
+            21u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::Varint,
+                )?;
+                self.block_producer_time_nanos = ::core::option::Option::Some(
+                    ::buffa::types::decode_uint64(buf)?,
+                );
+            }
             _ => {
                 ::buffa::encoding::skip_field_depth(tag, buf, ctx.depth())?;
             }
@@ -340,6 +380,7 @@ impl ::buffa::Message for Block {
         self.block_time = ::buffa::MessageField::none();
         self.block_height = ::buffa::MessageField::none();
         self.slot = 0u64;
+        self.block_producer_time_nanos = ::core::option::Option::None;
     }
 }
 #[derive(Clone, PartialEq, Default)]

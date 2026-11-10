@@ -473,6 +473,14 @@ pub struct AccountLazyView<'a> {
     pub data: &'a [u8],
     /// Field 7: `deleted`
     pub deleted: bool,
+    /// Indexes of the transactions that wrote this account in the slot, in ascending order. An index
+    /// is the position Agave gave the transaction in the block, which is its position in
+    /// `Block.transactions` unless transactions were removed from the block afterwards. Empty when
+    /// no transaction wrote the account, for example a reward, a sysvar update or a feature
+    /// activation.
+    ///
+    /// Field 8: `transaction_indexes`
+    pub transaction_indexes: ::buffa::RepeatedView<'a, u32>,
 }
 impl<'a> AccountLazyView<'a> {
     /// Decode from `buf` under the limits carried by `ctx`, recording
@@ -533,6 +541,26 @@ impl<'a> AccountLazyView<'a> {
                     )?;
                     view.deleted = ::buffa::types::decode_bool(&mut cur)?;
                 }
+                8u32 => {
+                    if tag.wire_type() == ::buffa::encoding::WireType::LengthDelimited {
+                        let payload = ::buffa::types::borrow_bytes(&mut cur)?;
+                        ::buffa::types::extend_packed_uint32(
+                            payload,
+                            view.transaction_indexes.as_mut_vec(),
+                            ::buffa::encoding::count_varints(payload),
+                        )?;
+                    } else if tag.wire_type() == ::buffa::encoding::WireType::Varint {
+                        view.transaction_indexes
+                            .push(::buffa::types::decode_uint32(&mut cur)?);
+                    } else {
+                        return Err(
+                            ::buffa::encoding::wire_type_mismatch(
+                                tag,
+                                ::buffa::encoding::WireType::LengthDelimited,
+                            ),
+                        );
+                    }
+                }
                 _ => {
                     ::buffa::encoding::skip_field_depth(tag, &mut cur, ctx.depth())?;
                 }
@@ -580,6 +608,7 @@ impl<'a> ::buffa::LazyMessageView<'a> for AccountLazyView<'a> {
             owner: (self.owner).to_vec(),
             data: (self.data).to_vec(),
             deleted: self.deleted,
+            transaction_indexes: self.transaction_indexes.to_vec(),
             ..::core::default::Default::default()
         })
     }
@@ -615,6 +644,14 @@ impl<'a> AccountLazyView<'a> {
         if self.deleted {
             size += 1u64 + ::buffa::types::BOOL_ENCODED_LEN as u64;
         }
+        if !self.transaction_indexes.is_empty() {
+            let payload: u64 = self
+                .transaction_indexes
+                .iter()
+                .map(|&v| ::buffa::types::uint32_encoded_len(v) as u64)
+                .sum::<u64>();
+            size += 1u64 + ::buffa::encoding::varint_len(payload) as u64 + payload;
+        }
         ::buffa::saturate_size(size)
     }
     /// Write the encoded bytes to `buf`, reading per-message sizes
@@ -641,6 +678,17 @@ impl<'a> AccountLazyView<'a> {
         }
         if self.deleted {
             ::buffa::types::put_bool_field(7u32, self.deleted, buf);
+        }
+        if !self.transaction_indexes.is_empty() {
+            let payload: u64 = self
+                .transaction_indexes
+                .iter()
+                .map(|&v| ::buffa::types::uint32_encoded_len(v) as u64)
+                .sum::<u64>();
+            ::buffa::types::put_len_delimited_header(8u32, payload, buf);
+            for &v in &self.transaction_indexes {
+                ::buffa::types::encode_uint32(v, buf);
+            }
         }
     }
     /// Compute size, then write. Primary encode entry point.

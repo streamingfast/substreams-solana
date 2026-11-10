@@ -211,6 +211,14 @@ pub struct Account {
     pub data: ::buffa::alloc::vec::Vec<u8>,
     /// Field 7: `deleted`
     pub deleted: bool,
+    /// Indexes of the transactions that wrote this account in the slot, in ascending order. An index
+    /// is the position Agave gave the transaction in the block, which is its position in
+    /// `Block.transactions` unless transactions were removed from the block afterwards. Empty when
+    /// no transaction wrote the account, for example a reward, a sysvar update or a feature
+    /// activation.
+    ///
+    /// Field 8: `transaction_indexes`
+    pub transaction_indexes: ::buffa::alloc::vec::Vec<u32>,
 }
 impl ::core::fmt::Debug for Account {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
@@ -219,6 +227,7 @@ impl ::core::fmt::Debug for Account {
             .field("owner", &self.owner)
             .field("data", &self.data)
             .field("deleted", &self.deleted)
+            .field("transaction_indexes", &self.transaction_indexes)
             .finish()
     }
 }
@@ -261,6 +270,14 @@ impl ::buffa::Message for Account {
         if self.deleted {
             size += 1u64 + ::buffa::types::BOOL_ENCODED_LEN as u64;
         }
+        if !self.transaction_indexes.is_empty() {
+            let payload: u64 = self
+                .transaction_indexes
+                .iter()
+                .map(|&v| ::buffa::types::uint32_encoded_len(v) as u64)
+                .sum::<u64>();
+            size += 1u64 + ::buffa::encoding::varint_len(payload) as u64 + payload;
+        }
         ::buffa::saturate_size(size)
     }
     fn write_to(
@@ -281,6 +298,17 @@ impl ::buffa::Message for Account {
         }
         if self.deleted {
             ::buffa::types::put_bool_field(7u32, self.deleted, buf);
+        }
+        if !self.transaction_indexes.is_empty() {
+            let payload: u64 = self
+                .transaction_indexes
+                .iter()
+                .map(|&v| ::buffa::types::uint32_encoded_len(v) as u64)
+                .sum::<u64>();
+            ::buffa::types::put_len_delimited_header(8u32, payload, buf);
+            for &v in &self.transaction_indexes {
+                ::buffa::types::encode_uint32(v, buf);
+            }
         }
     }
     fn merge_field(
@@ -322,6 +350,46 @@ impl ::buffa::Message for Account {
                 )?;
                 self.deleted = ::buffa::types::decode_bool(buf)?;
             }
+            8u32 => {
+                if tag.wire_type() == ::buffa::encoding::WireType::LengthDelimited {
+                    let len = ::buffa::encoding::decode_varint(buf)?;
+                    let len = usize::try_from(len)
+                        .map_err(|_| ::buffa::DecodeError::MessageTooLarge)?;
+                    if buf.remaining() < len {
+                        return ::core::result::Result::Err(
+                            ::buffa::DecodeError::UnexpectedEof,
+                        );
+                    }
+                    if buf.chunk().len() >= len {
+                        ::buffa::types::extend_packed_uint32(
+                            &buf.chunk()[..len],
+                            &mut self.transaction_indexes,
+                            len,
+                        )?;
+                        buf.advance(len);
+                    } else {
+                        self.transaction_indexes.reserve(len);
+                        let mut limited = buf.take(len);
+                        while limited.has_remaining() {
+                            self.transaction_indexes
+                                .push(::buffa::types::decode_uint32_packed(&mut limited)?);
+                        }
+                        let leftover = limited.remaining();
+                        if leftover > 0 {
+                            limited.advance(leftover);
+                        }
+                    }
+                } else if tag.wire_type() == ::buffa::encoding::WireType::Varint {
+                    self.transaction_indexes.push(::buffa::types::decode_uint32(buf)?);
+                } else {
+                    return ::core::result::Result::Err(
+                        ::buffa::encoding::wire_type_mismatch(
+                            tag,
+                            ::buffa::encoding::WireType::LengthDelimited,
+                        ),
+                    );
+                }
+            }
             _ => {
                 ::buffa::encoding::skip_field_depth(tag, buf, ctx.depth())?;
             }
@@ -333,5 +401,6 @@ impl ::buffa::Message for Account {
         self.owner.clear();
         self.data.clear();
         self.deleted = false;
+        self.transaction_indexes.clear();
     }
 }
