@@ -30,6 +30,12 @@ pub struct BlockView<'a> {
     ///
     /// Field 20: `slot`
     pub slot: u64,
+    /// Time at which the leader produced the block, in nanoseconds since the Unix epoch, taken from the
+    /// Alpenglow block footer. The value is part of the block, so every node reports the same one. Unset
+    /// when the block has no footer, which is the case for every block produced before Alpenglow.
+    ///
+    /// Field 21: `block_producer_time_nanos`
+    pub block_producer_time_nanos: ::core::option::Option<u64>,
 }
 impl<'a> ::buffa::MessageView<'a> for BlockView<'a> {
     type Owned = super::super::Block;
@@ -131,6 +137,15 @@ impl<'a> ::buffa::MessageView<'a> for BlockView<'a> {
                 )?;
                 view.slot = ::buffa::types::decode_uint64(&mut cur)?;
             }
+            21u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::Varint,
+                )?;
+                view.block_producer_time_nanos = Some(
+                    ::buffa::types::decode_uint64(&mut cur)?,
+                );
+            }
             4u32 => {
                 ::buffa::encoding::check_wire_type(
                     tag,
@@ -221,6 +236,7 @@ impl<'a> ::buffa::MessageView<'a> for BlockView<'a> {
                 None => ::buffa::MessageField::none(),
             },
             slot: self.slot,
+            block_producer_time_nanos: self.block_producer_time_nanos,
             ..::core::default::Default::default()
         })
     }
@@ -278,6 +294,9 @@ impl<'a> ::buffa::ViewEncode<'a> for BlockView<'a> {
         if self.slot != 0u64 {
             size += 2u64 + ::buffa::types::uint64_encoded_len(self.slot) as u64;
         }
+        if let Some(v) = self.block_producer_time_nanos {
+            size += 2u64 + ::buffa::types::uint64_encoded_len(v) as u64;
+        }
         ::buffa::saturate_size(size)
     }
     #[allow(clippy::needless_borrow)]
@@ -331,6 +350,9 @@ impl<'a> ::buffa::ViewEncode<'a> for BlockView<'a> {
         }
         if self.slot != 0u64 {
             ::buffa::types::put_uint64_field(20u32, self.slot, buf);
+        }
+        if let Some(v) = self.block_producer_time_nanos {
+            ::buffa::types::put_uint64_field(21u32, v, buf);
         }
     }
 }
@@ -470,6 +492,15 @@ impl BlockOwnedView {
     #[must_use]
     pub fn slot(&self) -> u64 {
         self.0.reborrow().slot
+    }
+    /// Time at which the leader produced the block, in nanoseconds since the Unix epoch, taken from the
+    /// Alpenglow block footer. The value is part of the block, so every node reports the same one. Unset
+    /// when the block has no footer, which is the case for every block produced before Alpenglow.
+    ///
+    /// Field 21: `block_producer_time_nanos`
+    #[must_use]
+    pub fn block_producer_time_nanos(&self) -> ::core::option::Option<u64> {
+        self.0.reborrow().block_producer_time_nanos
     }
 }
 impl ::core::convert::From<::buffa::OwnedView<BlockView<'static>>> for BlockOwnedView {

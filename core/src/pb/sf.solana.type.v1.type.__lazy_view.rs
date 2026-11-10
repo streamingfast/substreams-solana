@@ -49,6 +49,12 @@ pub struct BlockLazyView<'a> {
     ///
     /// Field 20: `slot`
     pub slot: u64,
+    /// Time at which the leader produced the block, in nanoseconds since the Unix epoch, taken from the
+    /// Alpenglow block footer. The value is part of the block, so every node reports the same one. Unset
+    /// when the block has no footer, which is the case for every block produced before Alpenglow.
+    ///
+    /// Field 21: `block_producer_time_nanos`
+    pub block_producer_time_nanos: ::core::option::Option<u64>,
 }
 impl<'a> BlockLazyView<'a> {
     /// Decode from `buf` under the limits carried by `ctx`, recording
@@ -128,6 +134,15 @@ impl<'a> BlockLazyView<'a> {
                         ::buffa::encoding::WireType::Varint,
                     )?;
                     view.slot = ::buffa::types::decode_uint64(&mut cur)?;
+                }
+                21u32 => {
+                    ::buffa::encoding::check_wire_type(
+                        tag,
+                        ::buffa::encoding::WireType::Varint,
+                    )?;
+                    view.block_producer_time_nanos = Some(
+                        ::buffa::types::decode_uint64(&mut cur)?,
+                    );
                 }
                 4u32 => {
                     ::buffa::encoding::check_wire_type(
@@ -232,6 +247,7 @@ impl<'a> ::buffa::LazyMessageView<'a> for BlockLazyView<'a> {
                 ::core::option::Option::None => ::buffa::MessageField::none(),
             },
             slot: self.slot,
+            block_producer_time_nanos: self.block_producer_time_nanos,
             ..::core::default::Default::default()
         })
     }
@@ -289,6 +305,9 @@ impl<'a> BlockLazyView<'a> {
         }
         if self.slot != 0u64 {
             size += 2u64 + ::buffa::types::uint64_encoded_len(self.slot) as u64;
+        }
+        if let Some(v) = self.block_producer_time_nanos {
+            size += 2u64 + ::buffa::types::uint64_encoded_len(v) as u64;
         }
         ::buffa::saturate_size(size)
     }
@@ -352,6 +371,9 @@ impl<'a> BlockLazyView<'a> {
         }
         if self.slot != 0u64 {
             ::buffa::types::put_uint64_field(20u32, self.slot, buf);
+        }
+        if let Some(v) = self.block_producer_time_nanos {
+            ::buffa::types::put_uint64_field(21u32, v, buf);
         }
     }
     /// Compute size, then write. Primary encode entry point.

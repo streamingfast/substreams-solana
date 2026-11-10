@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.17.0
+
+* Added `Account.transaction_indexes`: the indexes, in ascending order, of the transactions that wrote the account in the slot. An account can be written by several transactions of the same slot, and the account block carries its state after the last one. The list is empty when no transaction wrote the account, for example a reward, a sysvar update or a feature activation. An index is the transaction's position in the block as Agave executed it, so it no longer matches `Block.transactions` on blocks whose vote transactions were removed.
+
+* Added `RewardType::BlockRevenueSharing` (value 7). Once SIMD-0123 (`block_revenue_sharing`) is active, Agave 4.5 pays a stake account's share of the block revenue as a reward of that type, next to the account's `Staking` reward and under the same pubkey. Code that matches `RewardType` exhaustively needs a new arm.
+
+* Added `Block.block_producer_time_nanos`: the time, in nanoseconds since the Unix epoch, that the leader wrote in the Alpenglow block footer. It is `None` for blocks without a footer.
+
 ## 0.16.0
 
 * Re-added `RewardType::VATDebit`, with `RewardType::VatDebit` as an alias.
