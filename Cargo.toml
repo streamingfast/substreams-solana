@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "idlgen", "macro", "substreams-solana"]
+members = ["core", "idlgen", "idlgen-tests", "macro", "substreams-solana"]
 resolver = "2"
 
 [workspace.package]
