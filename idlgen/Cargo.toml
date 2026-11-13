@@ -1,0 +1,23 @@
+[package]
+name = "substreams-solana-idlgen"
+version.workspace = true
+description = "Reads Anchor IDL files for generating Substreams Solana program bindings."
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+bs58 = { workspace = true }
+heck = { workspace = true }
+prettyplease = "0.2"
+proc-macro2 = "1"
+quote = "1"
+serde_json = "1"
+sha2 = "0.10"
+syn = { version = "2", default-features = false, features = ["full", "parsing", "printing"] }
