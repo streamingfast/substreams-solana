@@ -8,6 +8,10 @@ use crate::pb::sf::solana::r#type::v1::ConfirmedTransaction;
 pub mod address;
 pub use buffa;
 
+pub mod borsh;
+
+pub mod idl;
+
 pub mod pb;
 
 /// Helpers to deal with block sources.
@@ -39,6 +43,8 @@ pub mod base58 {
 /// Instruction trait to be implemented by all instructions. The trait enables you to work on
 /// a generic instruction type instead of working with either [CompiledInstruction] or [InnerInstruction]
 /// model.
+///
+/// Indexes are unresolved; IDL decoding uses [idl::InstructionInput], which resolves them.
 pub trait Instruction {
     /// Returns the index of the program id in the transaction message's account keys.
     fn program_id_index(&self) -> u32;

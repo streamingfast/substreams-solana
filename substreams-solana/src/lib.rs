@@ -34,6 +34,31 @@
 //!   element is a view over the instruction, has resolved accounts and provides access to the transaction, compiled
 //!   instruction  of the transaction.  It make it much easier to walk the whole instruction tree of a
 //!   transaction. Refer to the method documentation for more information about it.
+//!
+//! ### Decoding Program Data
+//!
+//! - [borsh] is a dependency-free Borsh decoder used by generated code.
+//! - [idl] holds the traits generated code implements ([IdlInstruction], [IdlAccount],
+//!   [IdlEvent]) and [idl::program_data] to extract `Program data:` log payloads.
 pub use substreams_solana_core::buffa;
-pub use substreams_solana_core::{address::Address, base58, block_view, pb, Instruction};
+pub use substreams_solana_core::idl::{IdlAccount, IdlEvent, IdlInstruction, InstructionInput};
+pub use substreams_solana_core::{
+    address::Address, base58, block_view, borsh, idl, pb, Instruction,
+};
 pub use substreams_solana_macro::b58;
+
+/// Generates Rust bindings for a Solana program from its Anchor IDL, from your `build.rs`.
+///
+/// ```no_run
+/// use substreams_solana::Idlgen;
+///
+/// fn main() -> Result<(), anyhow::Error> {
+///     Idlgen::new("pumpfun", "idls/pumpfun.json")?
+///         .generate()?
+///         .write_to_file("src/idl/pumpfun.rs")?;
+///
+///     Ok(())
+/// }
+/// ```
+#[cfg(feature = "idlgen")]
+pub use substreams_solana_idlgen::build::Idlgen;

@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "macro", "substreams-solana"]
+members = ["core", "idlgen", "macro", "substreams-solana"]
 resolver = "2"
 
 [workspace.package]
@@ -15,9 +15,13 @@ categories = ["api-bindings", "external-ffi-bindings", "wasm"]
 rust-version = "1.85"
 
 [workspace.dependencies]
-substreams-solana = { version = "0.17.0", path = "./substreams-solana" }
+substreams-solana = { version = "0.17.0", path = "./substreams-solana", default-features = false }
 substreams-solana-core = { version = "0.17.0", path = "./core" }
+substreams-solana-idlgen = { version = "0.17.0", path = "./idlgen" }
 substreams-solana-macro = { version = "0.17.0", path = "./macro" }
+anyhow = "1"
+bs58 = "0.4.0"
+heck = "0.4"
 
 [profile.release]
 lto = true
