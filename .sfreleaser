@@ -9,4 +9,5 @@ release:
   rust-crates:
   - substreams-solana-macro
   - substreams-solana-core
+  - substreams-solana-idlgen
   - substreams-solana

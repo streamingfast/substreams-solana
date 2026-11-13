@@ -28,7 +28,8 @@ main() {
   check_git_clean
 
   sd '^version = ".*?"$' "version = \"${version}\"" Cargo.toml
-  sd 'version = ".*?",' "version = \"${version}\"," Cargo.toml
+  # Only the workspace's own crates: third-party dependencies keep their version.
+  sd '^(substreams-solana[a-z-]*) = \{ version = ".*?",' "\$1 = { version = \"${version}\"," Cargo.toml
   #sd 'version: v.*' "version: v${version}" substreams.yaml
   sd '## Unreleased' "## [${version}](https://${repository}/releases/tag/v${version})" CHANGELOG.md
 

@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+* Added `Idlgen`, the Solana counterpart of `Abigen`: from a `build.rs`, it generates a Rust module from an Anchor IDL (0.30 or legacy, Shank included) that depends only on `substreams-solana`. It is behind the default `idlgen` feature.
+
+* Generated modules contain `PROGRAM_ID`, every IDL type with a Borsh decoder, one struct per instruction, account and event, and `Instruction`, `Account` and `Event` enums that dispatch on the discriminator.
+
+* Generated events decode from `Program data:` log lines (`emit!`) and from self-CPI instructions (`emit_cpi!`).
+
+* Generated zero-copy (`bytemuck`) accounts decode from their SBF memory layout, with the size exposed as `SIZE`.
+
+* Generated modules expose IDL constants as typed `constants::*` items and error codes as a `ProgramError` enum. Constants written as expressions are kept as source text in `<NAME>_EXPR`.
+
+* Generated instructions decode their arguments and raw `account_keys` even when their accounts cannot be named: the named `accounts` are a `Result`.
+
+* Generated instructions name optional accounts the way programs read them: an optional account given as the program id is absent, and an instruction carrying fewer accounts than listed leaves its optional accounts out with later accounts shifted, as in Raydium AMM swaps.
+
+* Added `borsh`, a dependency-free Borsh runtime with the IDL types `Pubkey`, `COption`, `U256` and `I256`. Decoding never panics on malformed input, ignores trailing bytes like Anchor, bounds what a length prefix can preallocate and limits nesting to 128 levels.
+
+* Added the `idl` traits implemented by generated code (`IdlInstruction`, `IdlAccount`, `IdlEvent`), decoding from any `InstructionInput`: `InstructionView`, `LazyInstructionView` or `RawInstruction`.
+
+* Added `idl::program_data`, which extracts the `Program data:` payloads a program logged, attributing nested CPI logs to the right program.
+
+* Added `idl::NamedAccounts`, which matches an instruction's accounts to its IDL layout, and `InstructionInput::account_keys`.
+
 ## 0.17.0
 
 * Added `Account.transaction_indexes`: the indexes, in ascending order, of the transactions that wrote the account in the slot. An account can be written by several transactions of the same slot, and the account block carries its state after the last one. The list is empty when no transaction wrote the account, for example a reward, a sysvar update or a feature activation. An index is the transaction's position in the block as Agave executed it, so it no longer matches `Block.transactions` on blocks whose vote transactions were removed.

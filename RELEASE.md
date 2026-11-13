@@ -9,7 +9,7 @@ Requires `Bash`, [sfreleaser](https://github.com/streamingfast/sfreleaser) and [
 export version="0.12.0"
 
 sd '^version = ".*?"$' "version = \"${version}\"" Cargo.toml
-sd 'version = ".*?",' "version = \"${version}\"," Cargo.toml
+sd '^(substreams-solana[a-z-]*) = \{ version = ".*?",' "\$1 = { version = \"${version}\"," Cargo.toml
 sd '## Unreleased' "## ${version}" CHANGELOG.md
 
 # Important so that Cargo.lock is updated and you "test

@@ -1,0 +1,214 @@
+{
+  "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+  "metadata": { "name": "edge_cases", "version": "0.1.0", "spec": "0.1.0" },
+  "instructions": [
+    {
+      "name": "swap",
+      "docs": ["Swaps with groups, an optional account and an argument named `accounts`."],
+      "discriminator": [248, 198, 158, 145, 225, 117, 135, 200],
+      "accounts": [
+        { "name": "user", "writable": true, "signer": true },
+        {
+          "name": "pool",
+          "accounts": [
+            { "name": "state", "writable": true },
+            { "name": "vault" }
+          ]
+        },
+        { "name": "referrer", "optional": true },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "shape", "type": { "defined": { "name": "Shape" } } },
+        { "name": "accounts", "type": "u8" }
+      ]
+    },
+    {
+      "name": "swap_accounts",
+      "docs": ["A one-byte discriminator, and a name clashing with `SwapAccounts`."],
+      "discriminator": [7],
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "type",
+      "discriminator": [7, 1],
+      "accounts": [{ "name": "self", "signer": true }],
+      "args": [
+        { "name": "match", "type": { "defined": { "name": "Wrapper" } } },
+        { "name": "wide", "type": { "defined": { "name": "Wide" } } }
+      ],
+      "returns": "u64"
+    }
+  ],
+  "accounts": [
+    { "name": "Config", "discriminator": [155, 12, 170, 224, 30, 250, 204, 130] },
+    { "name": "ZcState", "discriminator": [1, 2, 3, 4, 5, 6, 7, 8] },
+    { "name": "ZcPacked", "discriminator": [8, 7, 6, 5, 4, 3, 2, 1] }
+  ],
+  "events": [
+    { "name": "Wide", "discriminator": [10, 20, 30, 40, 50, 60, 70, 80] },
+    { "name": "Swap", "discriminator": [81, 108, 227, 190, 205, 208, 10, 196] }
+  ],
+  "errors": [
+    { "code": 6000, "name": "TooSmall", "msg": "Amount is too small" },
+    { "code": 6001, "name": "no_message" },
+    { "code": 6001, "name": "Duplicate", "msg": "Listed twice" }
+  ],
+  "constants": [
+    { "name": "PRECISION", "type": "u64", "value": "1_000_000_000" },
+    { "name": "SEED", "type": "bytes", "value": "[115, 101, 101, 100]" },
+    { "name": "LABEL", "type": "string", "value": "\"edge\"" },
+    { "name": "OFFSET", "type": "i32", "value": "-42" },
+    { "name": "RATIO", "type": "f64", "value": "0.25" },
+    { "name": "ENABLED", "type": "bool", "value": "true" },
+    { "name": "ADMIN", "type": "pubkey", "value": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+    { "name": "TABLE", "type": { "array": [{ "array": ["u16", 2] }, 2] }, "value": "[[1, 2], [3, 0xff]]" },
+    { "name": "type", "type": "u8", "value": "7u8" }
+  ],
+  "types": [
+    {
+      "name": "Pair",
+      "generics": [
+        { "kind": "type", "name": "T" },
+        { "kind": "const", "name": "N", "type": "usize" }
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "first", "type": { "generic": "T" } },
+          { "name": "items", "type": { "array": [{ "generic": "T" }, { "generic": "N" }] } }
+        ]
+      }
+    },
+    {
+      "name": "Wrapper",
+      "type": {
+        "kind": "type",
+        "alias": {
+          "defined": {
+            "name": "Pair",
+            "generics": [
+              { "kind": "type", "type": "u64" },
+              { "kind": "const", "value": "2" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Shape",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          { "name": "Circle", "fields": [{ "name": "radius", "type": "f32" }] },
+          { "name": "Rect", "fields": ["u16", "u16"] },
+          { "name": "Empty" },
+          { "name": "Self" }
+        ]
+      }
+    },
+    {
+      "name": "Option",
+      "docs": ["Named like a std type, with keyword and single-letter fields."],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "type", "type": "u8" },
+          { "name": "self", "type": "bool" },
+          { "name": "r", "type": "u8" },
+          { "name": "w", "type": { "option": { "defined": { "name": "Option" } } } }
+        ]
+      }
+    },
+    { "name": "Point", "type": { "kind": "struct", "fields": ["i64", "i64"] } },
+    { "name": "Marker", "type": { "kind": "struct" } },
+    { "name": "foo_bar", "type": { "kind": "struct", "fields": [{ "name": "a", "type": "u8" }] } },
+    { "name": "FooBar", "type": { "kind": "struct", "fields": [{ "name": "b", "type": "u8" }] } },
+    {
+      "name": "Wide",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "big", "type": "u256" },
+          { "name": "signed_big", "type": "i256" },
+          { "name": "c_amount", "type": { "coption": "u64" } },
+          { "name": "owner", "type": { "option": "pubkey" } },
+          { "name": "labels", "type": { "vec": "string" } },
+          { "name": "blob", "type": "bytes" },
+          { "name": "signed", "type": "i128" },
+          { "name": "unsigned", "type": "u128" },
+          { "name": "ratio", "type": "f64" },
+          { "name": "point", "type": { "defined": { "name": "Point" } } },
+          { "name": "marker", "type": { "defined": { "name": "Marker" } } }
+        ]
+      }
+    },
+    {
+      "name": "Swap",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "user", "type": "pubkey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "clash_a", "type": { "defined": { "name": "foo_bar" } } },
+          { "name": "clash_b", "type": { "defined": { "name": "FooBar" } } }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "admin", "type": "pubkey" },
+          { "name": "shape", "type": { "defined": { "name": "Shape" } } },
+          { "name": "pair", "type": { "defined": { "name": "Wrapper" } } },
+          { "name": "custom", "type": { "defined": { "name": "Option" } } }
+        ]
+      }
+    },
+    {
+      "name": "ZcInner",
+      "serialization": "bytemuck",
+      "repr": { "kind": "c" },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "a", "type": "u8" },
+          { "name": "b", "type": "u64" }
+        ]
+      }
+    },
+    {
+      "name": "ZcState",
+      "serialization": "bytemuck",
+      "repr": { "kind": "c" },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "flag", "type": "u8" },
+          { "name": "inner", "type": { "defined": { "name": "ZcInner" } } },
+          { "name": "list", "type": { "array": [{ "defined": { "name": "ZcInner" } }, 2] } },
+          { "name": "value", "type": "u128" },
+          { "name": "ratio", "type": "f32" },
+          { "name": "key", "type": "pubkey" }
+        ]
+      }
+    },
+    {
+      "name": "ZcPacked",
+      "serialization": "bytemuckunsafe",
+      "repr": { "kind": "rust", "packed": true },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "a", "type": "u8" },
+          { "name": "b", "type": "u32" },
+          { "name": "c", "type": { "array": ["u16", 3] } }
+        ]
+      }
+    }
+  ]
+}

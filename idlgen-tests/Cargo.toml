@@ -1,0 +1,21 @@
+[package]
+name = "substreams-solana-idlgen-tests"
+version.workspace = true
+description = "Tests of the code substreams-solana-idlgen generates."
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+doc = false
+
+[dependencies]
+substreams-solana = { workspace = true }
+
+[build-dependencies]
+anyhow = { workspace = true }
+substreams-solana = { workspace = true, features = ["idlgen"] }
+
+[dev-dependencies]
+substreams-solana-idlgen = { workspace = true }

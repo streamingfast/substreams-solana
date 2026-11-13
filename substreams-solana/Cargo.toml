@@ -11,6 +11,15 @@ keywords.workspace = true
 categories.workspace = true
 rust-version.workspace = true
 
+[features]
+default = ["idlgen"]
+# The `Idlgen` code generator, used from build scripts only.
+idlgen = ["dep:substreams-solana-idlgen"]
+
 [dependencies]
 substreams-solana-core = { workspace = true }
+substreams-solana-idlgen = { workspace = true, optional = true }
 substreams-solana-macro = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }

@@ -192,6 +192,11 @@ impl<'a> InstructionView<'a> {
     pub fn confirmed_transaction(&self) -> &'a pb::ConfirmedTransaction {
         self.trx
     }
+
+    /// The unresolved instruction, for non-panicking account resolution.
+    pub(crate) fn raw_instruction(&self) -> &(dyn Instruction + 'a) {
+        &*self.instruction
+    }
 }
 
 impl pb::ConfirmedTransaction {
@@ -495,12 +500,13 @@ pub mod lazy {
 
         fn account_at(&self, index: u8) -> AddressRef<'a> {
             static EMPTY: &[u8] = &[];
-            AddressRef(
-                self.resolved
-                    .get(index as usize)
-                    .copied()
-                    .unwrap_or(EMPTY),
-            )
+            AddressRef(self.resolved.get(index as usize).copied().unwrap_or(EMPTY))
+        }
+
+        /// The resolved address at `index` of the transaction's account table. Panics when
+        /// `index` is outside the table.
+        pub(crate) fn resolved_account(&self, index: u8) -> &'a [u8] {
+            self.resolved[index as usize]
         }
     }
 
