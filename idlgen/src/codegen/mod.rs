@@ -467,9 +467,10 @@ impl<'a> Generator<'a> {
         let doc = docs(&def.docs);
         let (decl_generics, args) = self.generics(def, None, path)?;
         let (decode_generics, _) = self.generics(def, Some(quote!(#b::BorshDecode)), path)?;
+        let (encode_generics, _) = self.generics(def, Some(quote!(#b::BorshEncode)), path)?;
         let ok = result_ty(quote!(Self));
 
-        let (decl, decode) = match &def.kind {
+        let (decl, decode, encode) = match &def.kind {
             TypeDefKind::Alias(target) => {
                 let target = self.rust_type(target, scope, path)?;
                 return Ok(quote! {
@@ -478,12 +479,13 @@ impl<'a> Generator<'a> {
                 });
             }
             TypeDefKind::Struct(fields) => {
-                let (body, decode) = self.struct_parts(fields, Some(&def.name), scope, path)?;
+                let (body, decode, encode) =
+                    self.struct_parts(fields, Some(&def.name), scope, path)?;
                 let decl = match fields {
                     Fields::Named(_) => quote!(pub struct #ident #decl_generics #body),
                     _ => quote!(pub struct #ident #decl_generics #body;),
                 };
-                (decl, decode)
+                (decl, decode, encode)
             }
             TypeDefKind::Enum(variants) => {
                 if variants.len() > 256 {
@@ -492,11 +494,12 @@ impl<'a> Generator<'a> {
                 let mut namespace = names::Namespace::new();
                 let mut decl_variants = Vec::new();
                 let mut decode_arms = Vec::new();
+                let mut encode_arms = Vec::new();
                 for (index, variant) in variants.iter().enumerate() {
                     let index = index as u8;
                     let variant_path = format!("{path}.{}", variant.name);
                     let v = namespace.pascal(&variant.name);
-                    let (body, decode) = self.variant_parts(
+                    let (body, decode, encode) = self.variant_parts(
                         &v,
                         &variant.fields,
                         Some(&def.name),
@@ -505,6 +508,13 @@ impl<'a> Generator<'a> {
                     )?;
                     decl_variants.push(quote!(#v #body));
                     decode_arms.push(quote!(#index => #decode));
+                    let (pattern, writes) = encode;
+                    encode_arms.push(quote! {
+                        Self::#v #pattern => {
+                            w.write(&#index);
+                            #writes
+                        }
+                    });
                 }
                 let name = &def.name;
                 let decl = quote!(pub enum #ident #decl_generics { #(#decl_variants),* });
@@ -515,7 +525,12 @@ impl<'a> Generator<'a> {
                         _ => ::core::result::Result::Err(#b::DecodeError::invalid_variant(r, #name, variant)),
                     }
                 };
-                (decl, decode)
+                let encode = if variants.is_empty() {
+                    quote!(match *self {})
+                } else {
+                    quote!(match self { #(#encode_arms)* })
+                };
+                (decl, decode, encode)
             }
         };
 
@@ -536,20 +551,26 @@ impl<'a> Generator<'a> {
                 }
             }
 
+            impl #encode_generics #b::BorshEncode for #ident #args {
+                fn encode(&self, w: &mut #b::BorshWriter) {
+                    #encode
+                }
+            }
+
             #zero_copy
         })
     }
 
-    /// Declaration body and decode expression of a struct.
+    /// Declaration body, decode expression and encode statements of a struct.
     fn struct_parts(
         &self,
         fields: &Fields,
         owner: Option<&str>,
         scope: Scope,
         path: &str,
-    ) -> Result<(TokenStream, TokenStream)> {
+    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
         Ok(match fields {
-            Fields::Unit => (quote!(), quote!(::core::result::Result::Ok(Self))),
+            Fields::Unit => (quote!(), quote!(::core::result::Result::Ok(Self)), quote!()),
             Fields::Named(fields) => {
                 let mut namespace = names::Namespace::new();
                 let mut decl = Vec::new();
@@ -569,6 +590,7 @@ impl<'a> Generator<'a> {
                 (
                     quote!({ #(#decl,)* }),
                     quote!(::core::result::Result::Ok(Self { #(#idents: r.read()?,)* })),
+                    quote!(#(w.write(&self.#idents);)*),
                 )
             }
             Fields::Tuple(types) => {
@@ -578,15 +600,18 @@ impl<'a> Generator<'a> {
                     .map(|(i, ty)| self.field_type(ty, scope, &format!("{path}.{i}"), owner))
                     .collect::<Result<Vec<_>>>()?;
                 let reads = types.iter().map(|_| quote!(r.read()?));
+                let indices = (0..types.len()).map(syn::Index::from);
                 (
                     quote!((#(pub #types),*)),
                     quote!(::core::result::Result::Ok(Self(#(#reads),*))),
+                    quote!(#(w.write(&self.#indices);)*),
                 )
             }
         })
     }
 
-    /// Declaration body and decode expression of an enum variant.
+    /// Declaration body, decode expression, and encode pattern and statements
+    /// of an enum variant.
     fn variant_parts(
         &self,
         v: &Ident,
@@ -594,9 +619,13 @@ impl<'a> Generator<'a> {
         owner: Option<&str>,
         scope: Scope,
         path: &str,
-    ) -> Result<(TokenStream, TokenStream)> {
+    ) -> Result<(TokenStream, TokenStream, (TokenStream, TokenStream))> {
         Ok(match fields {
-            Fields::Unit => (quote!(), quote!(::core::result::Result::Ok(Self::#v))),
+            Fields::Unit => (
+                quote!(),
+                quote!(::core::result::Result::Ok(Self::#v)),
+                (quote!(), quote!()),
+            ),
             Fields::Named(fields) => {
                 let mut namespace = names::Namespace::new();
                 let mut decl = Vec::new();
@@ -613,9 +642,16 @@ impl<'a> Generator<'a> {
                     decl.push(quote!(#doc #ident: #ty));
                     idents.push(ident);
                 }
+                let bindings: Vec<Ident> = (0..idents.len())
+                    .map(|i| format_ident!("__f{}", i))
+                    .collect();
                 (
                     quote!({ #(#decl,)* }),
                     quote!(::core::result::Result::Ok(Self::#v { #(#idents: r.read()?,)* })),
+                    (
+                        quote!({ #(#idents: #bindings),* }),
+                        quote!(#(w.write(#bindings);)*),
+                    ),
                 )
             }
             Fields::Tuple(types) => {
@@ -625,15 +661,19 @@ impl<'a> Generator<'a> {
                     .map(|(i, ty)| self.field_type(ty, scope, &format!("{path}.{i}"), owner))
                     .collect::<Result<Vec<_>>>()?;
                 let reads = types.iter().map(|_| quote!(r.read()?));
+                let bindings: Vec<Ident> = (0..types.len())
+                    .map(|i| format_ident!("__f{}", i))
+                    .collect();
                 (
                     quote!((#(#types),*)),
                     quote!(::core::result::Result::Ok(Self::#v(#(#reads),*))),
+                    (quote!((#(#bindings),*)), quote!(#(w.write(#bindings);)*)),
                 )
             }
         })
     }
 
-    /// `SIZE`, `ALIGN` and the raw-layout reader of a zero-copy struct.
+    /// `SIZE`, `ALIGN` and the raw-layout reader and writer of a zero-copy struct.
     fn zero_copy_impl(
         &self,
         def: &TypeDef,
@@ -655,6 +695,7 @@ impl<'a> Generator<'a> {
 
         let mut cursor = 0usize;
         let mut reads = Vec::new();
+        let mut writes = Vec::new();
         let mut bindings = Vec::new();
         for (i, (field, ty)) in layout.fields.iter().zip(&types).enumerate() {
             let field_path = format!("{path}.{}", field.name);
@@ -662,10 +703,23 @@ impl<'a> Generator<'a> {
             let has_pad = field.offset > cursor;
             let binding = format_ident!("__f{}", i);
             let read = self.zero_copy_read(ty, scope, &field_path)?;
+            let place = match &def.kind {
+                TypeDefKind::Struct(Fields::Named(_)) => {
+                    let ident = &self.field_idents(def)[i];
+                    quote!(&self.#ident)
+                }
+                _ => {
+                    let index = syn::Index::from(i);
+                    quote!(&self.#index)
+                }
+            };
+            let write = self.zero_copy_write(ty, place, &field_path, 0)?;
             if has_pad {
                 reads.push(quote!(r.skip(#pad)?;));
+                writes.push(quote!(w.write_bytes(&[0u8; #pad]);));
             }
             reads.push(quote!(let #binding = #read;));
+            writes.push(write);
             bindings.push(binding);
             cursor = field.offset + field.size;
         }
@@ -673,6 +727,7 @@ impl<'a> Generator<'a> {
         let tail = Literal::usize_unsuffixed(layout.size - cursor);
         if has_tail {
             reads.push(quote!(r.skip(#tail)?;));
+            writes.push(quote!(w.write_bytes(&[0u8; #tail]);));
         }
         let construct = match &def.kind {
             TypeDefKind::Struct(Fields::Named(_)) => {
@@ -702,6 +757,11 @@ impl<'a> Generator<'a> {
                     ::core::result::Result::Ok(#construct)
                 }
 
+                /// Writes the raw memory layout, zeroing the padding.
+                pub fn zero_copy_write(&self, w: &mut #b::BorshWriter) {
+                    #(#writes)*
+                }
+
                 /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
                 pub fn decode_zero_copy(data: &[u8]) -> #ok {
                     if data.len() < Self::SIZE {
@@ -714,6 +774,12 @@ impl<'a> Generator<'a> {
                     Self::zero_copy_read(&mut #b::BorshReader::new(data))
                 }
 
+                /// Encodes the raw memory layout, [Self::SIZE] bytes.
+                pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+                    let mut w = #b::BorshWriter::with_capacity(Self::SIZE);
+                    self.zero_copy_write(&mut w);
+                    w.into_vec()
+                }
             }
         })
     }
@@ -744,7 +810,7 @@ impl<'a> Generator<'a> {
         error(path, "alias chain too deep")
     }
 
-    /// Whether the raw memory bytes of `ty` decode as its Borsh encoding.
+    /// Whether the raw memory bytes of `ty` are its Borsh encoding, both ways.
     fn same_as_borsh(&self, ty: &IdlType, path: &str) -> Result<bool> {
         Ok(match self.resolve_alias(ty, path)? {
             IdlType::Bool
@@ -782,6 +848,28 @@ impl<'a> Generator<'a> {
                 let len = Literal::usize_unsuffixed(*len);
                 let element = self.zero_copy_read(element, scope, path)?;
                 quote!(#b::try_array::<_, #len>(|| ::core::result::Result::Ok(#element))?)
+            }
+            _ => return error(path, "type has no zero-copy layout"),
+        })
+    }
+
+    /// Statements writing `place`, a `&ty`, in its raw memory layout to `w`.
+    fn zero_copy_write(
+        &self,
+        ty: &IdlType,
+        place: TokenStream,
+        path: &str,
+        depth: usize,
+    ) -> Result<TokenStream> {
+        Ok(match self.resolve_alias(ty, path)? {
+            // Borsh writes floats as their raw bytes, NaN included.
+            IdlType::F32 | IdlType::F64 => quote!(w.write(#place);),
+            _ if self.same_as_borsh(ty, path)? => quote!(w.write(#place);),
+            IdlType::Defined { .. } => quote!((#place).zero_copy_write(w);),
+            IdlType::Array(element, ArrayLen::Value(_)) => {
+                let e = format_ident!("__e{}", depth);
+                let inner = self.zero_copy_write(element, quote!(#e), path, depth + 1)?;
+                quote!(for #e in (#place).iter() { #inner })
             }
             _ => return error(path, "type has no zero-copy layout"),
         })

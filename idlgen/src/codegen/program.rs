@@ -162,6 +162,7 @@ impl<'a> Generator<'a> {
         fields.reserve("account_keys");
         let mut arg_decls = Vec::new();
         let mut arg_idents = Vec::new();
+        let mut arg_params = Vec::new();
         for arg in &ix.args {
             let arg_ident = fields.snake(&arg.name);
             let ty = self.rust_type(
@@ -170,6 +171,7 @@ impl<'a> Generator<'a> {
                 &format!("{path}.args.{}", arg.name),
             )?;
             let doc = docs(&arg.docs);
+            arg_params.push(quote!(#arg_ident: #ty));
             arg_decls.push(quote!(#doc pub #arg_ident: #ty));
             arg_idents.push(arg_ident);
         }
@@ -177,22 +179,70 @@ impl<'a> Generator<'a> {
         let mut account_fields = Namespace::new();
         let mut account_decls = Vec::new();
         let mut account_decodes = Vec::new();
+        let mut account_keys = Vec::new();
         let mut optional_flags = Vec::new();
+        let mut optional_idents = Vec::new();
+        // Shank's `legacyOptionalAccountsStrategy` leaves absent optional accounts out instead of
+        // passing the program id.
+        let omit = ix.legacy_optional_accounts_strategy;
         for (index, account) in ix.accounts.iter().enumerate() {
             let index = Literal::usize_unsuffixed(index);
             let account_ident = account_fields.snake(&account.qualified_name().replace('.', "_"));
             let doc = docs(&account_docs(account));
             optional_flags.push(account.optional);
             if account.optional {
+                optional_idents.push(account_ident.clone());
                 account_decls
                     .push(quote!(#doc pub #account_ident: ::core::option::Option<#b::Pubkey>));
                 account_decodes.push(quote!(#account_ident: named.optional(#index)?));
+                account_keys.push(if omit {
+                    quote!(self.#account_ident)
+                } else {
+                    quote!(::core::option::Option::Some(
+                        self.#account_ident.unwrap_or(super::PROGRAM_ID)
+                    ))
+                });
             } else {
                 account_decls.push(quote!(#doc pub #account_ident: #b::Pubkey));
                 account_decodes.push(quote!(#account_ident: named.required(#index)?));
+                account_keys.push(quote!(::core::option::Option::Some(self.#account_ident)));
             }
         }
-
+        let len = Literal::usize_unsuffixed(ix.accounts.len());
+        // A Shank program reading omitted accounts takes all of them or none: a partial
+        // omission would shift later accounts into the wrong slots.
+        let partial_check = if omit && optional_idents.len() > 1 {
+            let message =
+                format!("{ident}: the optional accounts must be all present or all absent");
+            let total = Literal::usize_unsuffixed(optional_idents.len());
+            quote! {
+                let present = [#(self.#optional_idents.is_some()),*]
+                    .into_iter()
+                    .filter(|&p| p)
+                    .count();
+                assert!(present == 0 || present == #total, #message);
+            }
+        } else {
+            quote!()
+        };
+        let keys_rule = if omit && optional_idents.len() > 1 {
+            vec![
+                "The account addresses in instruction order, absent optional accounts left out.",
+                "",
+                "Panics when only some optional accounts are present: the program would read",
+                "later accounts in the wrong slots.",
+            ]
+        } else if omit {
+            vec!["The account addresses in instruction order, absent optional accounts left out."]
+        } else {
+            vec!["The account addresses in instruction order, the program id for absent optional accounts."]
+        };
+        let keys_body = quote! {
+            #partial_check
+            let keys: [::core::option::Option<#b::Pubkey>; #len] = [#(#account_keys),*];
+            keys.into_iter().flatten().collect()
+        };
+        let keys_rule = docs(&keys_rule);
         let mut ix_docs = ix.docs.clone();
         if let Some(returns) = &ix.returns {
             let returns = self.rust_type(returns, Scope::Sibling, &format!("{path}.returns"))?;
@@ -248,6 +298,11 @@ impl<'a> Generator<'a> {
                     let named = #idl::NamedAccounts::#resolve(ix, Self::OPTIONAL)?;
                     ::core::result::Result::Ok(Self { #(#account_decodes,)* })
                 }
+
+                #keys_rule
+                pub fn to_account_keys(&self) -> ::std::vec::Vec<#b::Pubkey> {
+                    #keys_body
+                }
             }
 
             impl #idl::IdlInstruction for #ident {
@@ -263,6 +318,25 @@ impl<'a> Generator<'a> {
                         accounts: #accounts_ident::decode(ix),
                         account_keys: #idl::InstructionInput::account_keys(ix)?,
                     })
+                }
+            }
+
+            impl #ident {
+                /// An instruction with these arguments and accounts.
+                pub fn new(#(#arg_params,)* accounts: #accounts_ident) -> Self {
+                    Self {
+                        #(#arg_idents,)*
+                        account_keys: accounts.to_account_keys(),
+                        accounts: ::core::result::Result::Ok(accounts),
+                    }
+                }
+
+                /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+                pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+                    let mut w = #b::BorshWriter::new();
+                    w.write_bytes(<Self as #idl::IdlInstruction>::DISCRIMINATOR);
+                    #(w.write(&self.#arg_idents);)*
+                    w.into_vec()
                 }
             }
         })
@@ -296,10 +370,30 @@ impl<'a> Generator<'a> {
             } else {
                 quote!()
             };
+            let encode_body = if zero_copy {
+                quote!(self.zero_copy_write(&mut w);)
+            } else {
+                quote!(w.write(self);)
+            };
+            let encode_doc = docs(&[if zero_copy {
+                "The account data: the discriminator followed by the raw memory layout."
+            } else {
+                "The account data: the discriminator followed by the Borsh-encoded fields."
+            }]);
             items.push(quote! {
                 impl #idl::IdlAccount for #ident {
                     const DISCRIMINATOR: &'static [u8] = #discriminator;
                     #decode
+                }
+
+                impl #ident {
+                    #encode_doc
+                    pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+                        let mut w = #b::BorshWriter::new();
+                        w.write_bytes(<Self as #idl::IdlAccount>::DISCRIMINATOR);
+                        #encode_body
+                        w.into_vec()
+                    }
                 }
             });
 
@@ -344,6 +438,23 @@ impl<'a> Generator<'a> {
                 impl #idl::IdlEvent for #ident {
                     const PROGRAM_ID: #b::Pubkey = super::PROGRAM_ID;
                     const DISCRIMINATOR: &'static [u8] = #discriminator;
+                }
+
+                impl #ident {
+                    /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+                    pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+                        let mut w = #b::BorshWriter::new();
+                        w.write_bytes(<Self as #idl::IdlEvent>::DISCRIMINATOR);
+                        w.write(self);
+                        w.into_vec()
+                    }
+
+                    /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+                    pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+                        let mut data = #idl::EVENT_IX_TAG_LE.to_vec();
+                        data.extend(self.encode_log_data());
+                        data
+                    }
                 }
             });
 
@@ -403,7 +514,7 @@ impl<'a> Generator<'a> {
                 quote!(#ident(instructions::#ident))
             })
             .collect();
-        let names = name_arms(&items);
+        let (names, encodes) = name_and_encode_arms(&items, quote!(encode_data));
         let b = borsh();
         let (account_keys, accounts_error) = if items.is_empty() {
             (quote!(match *self {}), quote!(match *self {}))
@@ -462,6 +573,11 @@ impl<'a> Generator<'a> {
                     #names
                 }
 
+                /// The instruction data, see each instruction's `encode_data`.
+                pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+                    #encodes
+                }
+
                 /// Every account address the instruction names, in order.
                 pub fn account_keys(&self) -> &[#b::Pubkey] {
                     #account_keys
@@ -485,7 +601,7 @@ impl<'a> Generator<'a> {
                 quote!(#ident(accounts::#ident))
             })
             .collect();
-        let names = name_arms(&items);
+        let (names, encodes) = name_and_encode_arms(&items, quote!(encode_account));
         dispatch_order(&mut items);
         let decodes = items.iter().map(|item| {
             let ident = &item.ident;
@@ -522,6 +638,11 @@ impl<'a> Generator<'a> {
                 pub fn name(&self) -> &'static str {
                     #names
                 }
+
+                /// The account data, see each account's `encode_account`.
+                pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+                    #encodes
+                }
             }
         }
     }
@@ -536,7 +657,7 @@ impl<'a> Generator<'a> {
                 quote!(#ident(events::#ident))
             })
             .collect();
-        let names = name_arms(&items);
+        let (names, encodes) = name_and_encode_arms(&items, quote!(encode_log_data));
         dispatch_order(&mut items);
         let decodes = items.iter().map(|item| {
             let ident = &item.ident;
@@ -600,6 +721,11 @@ impl<'a> Generator<'a> {
                 pub fn name(&self) -> &'static str {
                     #names
                 }
+
+                /// The `Program data:` payload, see each event's `encode_log_data`.
+                pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+                    #encodes
+                }
             }
         }
     }
@@ -621,14 +747,17 @@ fn skipped_doc(doc: &mut Vec<String>, kind: &str, skipped: &[&str]) {
     ));
 }
 
-/// The body of `name()` of a dispatch enum.
-fn name_arms(items: &[Dispatch<'_>]) -> TokenStream {
+/// The bodies of `name()` and of the encode method of a dispatch enum.
+fn name_and_encode_arms(items: &[Dispatch<'_>], encode: TokenStream) -> (TokenStream, TokenStream) {
     if items.is_empty() {
-        return quote!(match *self {});
+        return (quote!(match *self {}), quote!(match *self {}));
     }
     let idents: Vec<&Ident> = items.iter().map(|item| &item.ident).collect();
     let names = items.iter().map(|item| item.name);
-    quote!(match self { #(Self::#idents(_) => #names,)* })
+    (
+        quote!(match self { #(Self::#idents(_) => #names,)* }),
+        quote!(match self { #(Self::#idents(value) => value.#encode(),)* }),
+    )
 }
 
 fn account_docs(account: &InstructionAccount) -> Vec<String> {

@@ -37,7 +37,7 @@
 //!
 //! ### Decoding Program Data
 //!
-//! - [borsh] is a dependency-free Borsh decoder used by generated code.
+//! - [borsh] is a dependency-free Borsh decoder and encoder used by generated code.
 //! - [idl] holds the traits generated code implements ([IdlInstruction], [IdlAccount],
 //!   [IdlEvent]) and [idl::program_data] to extract `Program data:` log payloads.
 pub use substreams_solana_core::buffa;
