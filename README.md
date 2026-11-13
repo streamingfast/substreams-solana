@@ -97,6 +97,8 @@ fn decode_account(data: &[u8]) {
 
 An instruction's named accounts are a `Result`: its arguments and raw `account_keys` decode even when its accounts cannot be named, for instance when a Shank program accepts a shorter account list than its IDL describes.
 
+Generated code also encodes: `new` and `encode_data` build instructions, `to_account_keys` their account list, `encode_account`, `encode_log_data` and `encode_cpi_data` account and event bytes, and every IDL type implements `BorshEncode`.
+
 ## Development
 
 We manually keep in sync the rendered Rust Firehose Block models with the actual Protocol Buffer definitions file found in [sf-solana](https://github.com/streamingfast/sf-solana/tree/develop/proto) and we commit them to Git.

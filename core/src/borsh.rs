@@ -299,6 +299,50 @@ impl DecodeError {
     }
 }
 
+/// A growable buffer receiving Borsh-encoded bytes.
+#[derive(Debug, Clone, Default)]
+pub struct BorshWriter {
+    buf: Vec<u8>,
+}
+
+impl BorshWriter {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            buf: Vec::with_capacity(capacity),
+        }
+    }
+
+    /// Encodes `value` at the end of the buffer.
+    pub fn write<T: BorshEncode + ?Sized>(&mut self, value: &T) {
+        value.encode(self)
+    }
+
+    /// Appends raw bytes, without a length prefix.
+    pub fn write_bytes(&mut self, bytes: &[u8]) {
+        self.buf.extend_from_slice(bytes)
+    }
+
+    /// Appends a `u32` length prefix.
+    ///
+    /// Panics if `len` exceeds `u32::MAX`, which Borsh cannot represent.
+    pub fn write_len(&mut self, len: usize) {
+        let len = u32::try_from(len).expect("borsh length exceeds u32::MAX");
+        self.write_bytes(&len.to_le_bytes())
+    }
+
+    pub fn as_slice(&self) -> &[u8] {
+        &self.buf
+    }
+
+    pub fn into_vec(self) -> Vec<u8> {
+        self.buf
+    }
+}
+
 /// A type that can be read from Borsh-encoded bytes.
 pub trait BorshDecode: Sized {
     fn decode(r: &mut BorshReader<'_>) -> Result<Self, DecodeError>;
@@ -352,6 +396,23 @@ pub fn try_array<T, const N: usize>(
     }
 }
 
+/// A type that can be written as Borsh-encoded bytes.
+pub trait BorshEncode {
+    fn encode(&self, w: &mut BorshWriter);
+
+    /// Encodes consecutive values. Overridden for `u8` to copy in one go; not meant to be called
+    /// directly.
+    #[doc(hidden)]
+    fn encode_slice(items: &[Self], w: &mut BorshWriter)
+    where
+        Self: Sized,
+    {
+        for item in items {
+            item.encode(w)
+        }
+    }
+}
+
 /// Decodes a `T` from the start of `data`, ignoring trailing bytes (Anchor semantics).
 pub fn decode<T: BorshDecode>(data: &[u8]) -> Result<T, DecodeError> {
     T::decode(&mut BorshReader::new(data))
@@ -365,6 +426,13 @@ pub fn decode_exact<T: BorshDecode>(data: &[u8]) -> Result<T, DecodeError> {
     Ok(value)
 }
 
+/// Encodes `value` into a new `Vec<u8>`.
+pub fn encode<T: BorshEncode + ?Sized>(value: &T) -> Vec<u8> {
+    let mut w = BorshWriter::new();
+    value.encode(&mut w);
+    w.into_vec()
+}
+
 macro_rules! impl_int {
     ($($ty:ty),*) => {$(
         impl BorshDecode for $ty {
@@ -374,6 +442,12 @@ macro_rules! impl_int {
             }
         }
 
+        impl BorshEncode for $ty {
+            #[inline]
+            fn encode(&self, w: &mut BorshWriter) {
+                w.write_bytes(&self.to_le_bytes())
+            }
+        }
     )*};
 }
 
@@ -394,6 +468,17 @@ impl BorshDecode for u8 {
     }
 }
 
+impl BorshEncode for u8 {
+    #[inline]
+    fn encode(&self, w: &mut BorshWriter) {
+        w.write_bytes(&[*self])
+    }
+
+    fn encode_slice(items: &[Self], w: &mut BorshWriter) {
+        w.write_bytes(items)
+    }
+}
+
 macro_rules! impl_float {
     ($($ty:ty),*) => {$(
         impl BorshDecode for $ty {
@@ -407,6 +492,11 @@ macro_rules! impl_float {
             }
         }
 
+        impl BorshEncode for $ty {
+            fn encode(&self, w: &mut BorshWriter) {
+                w.write_bytes(&self.to_le_bytes())
+            }
+        }
     )*};
 }
 
@@ -423,9 +513,28 @@ impl BorshDecode for bool {
     }
 }
 
+impl BorshEncode for bool {
+    fn encode(&self, w: &mut BorshWriter) {
+        w.write_bytes(&[*self as u8])
+    }
+}
+
 impl BorshDecode for String {
     fn decode(r: &mut BorshReader<'_>) -> Result<Self, DecodeError> {
         r.read_str().map(str::to_owned)
+    }
+}
+
+impl BorshEncode for str {
+    fn encode(&self, w: &mut BorshWriter) {
+        w.write_len(self.len());
+        w.write_bytes(self.as_bytes())
+    }
+}
+
+impl BorshEncode for String {
+    fn encode(&self, w: &mut BorshWriter) {
+        self.as_str().encode(w)
     }
 }
 
@@ -436,9 +545,28 @@ impl<T: BorshDecode> BorshDecode for Vec<T> {
     }
 }
 
+impl<T: BorshEncode> BorshEncode for [T] {
+    fn encode(&self, w: &mut BorshWriter) {
+        w.write_len(self.len());
+        T::encode_slice(self, w)
+    }
+}
+
+impl<T: BorshEncode> BorshEncode for Vec<T> {
+    fn encode(&self, w: &mut BorshWriter) {
+        self.as_slice().encode(w)
+    }
+}
+
 impl<T: BorshDecode, const N: usize> BorshDecode for [T; N] {
     fn decode(r: &mut BorshReader<'_>) -> Result<Self, DecodeError> {
         T::decode_array::<N>(r)
+    }
+}
+
+impl<T: BorshEncode, const N: usize> BorshEncode for [T; N] {
+    fn encode(&self, w: &mut BorshWriter) {
+        T::encode_slice(self, w)
     }
 }
 
@@ -453,9 +581,33 @@ impl<T: BorshDecode> BorshDecode for Option<T> {
     }
 }
 
+impl<T: BorshEncode> BorshEncode for Option<T> {
+    fn encode(&self, w: &mut BorshWriter) {
+        match self {
+            None => w.write_bytes(&[0]),
+            Some(value) => {
+                w.write_bytes(&[1]);
+                value.encode(w)
+            }
+        }
+    }
+}
+
 impl<T: BorshDecode> BorshDecode for Box<T> {
     fn decode(r: &mut BorshReader<'_>) -> Result<Self, DecodeError> {
         r.nested(T::decode).map(Box::new)
+    }
+}
+
+impl<T: BorshEncode + ?Sized> BorshEncode for Box<T> {
+    fn encode(&self, w: &mut BorshWriter) {
+        (**self).encode(w)
+    }
+}
+
+impl<T: BorshEncode + ?Sized> BorshEncode for &T {
+    fn encode(&self, w: &mut BorshWriter) {
+        (**self).encode(w)
     }
 }
 
@@ -467,6 +619,11 @@ macro_rules! impl_tuple {
             }
         }
 
+        impl<$($name: BorshEncode),+> BorshEncode for ($($name,)+) {
+            fn encode(&self, w: &mut BorshWriter) {
+                $(self.$idx.encode(w);)+
+            }
+        }
     )*};
 }
 
@@ -588,6 +745,12 @@ impl BorshDecode for Pubkey {
     }
 }
 
+impl BorshEncode for Pubkey {
+    fn encode(&self, w: &mut BorshWriter) {
+        w.write_bytes(&self.0)
+    }
+}
+
 /// The IDL `coption` type: a 4-byte little-endian tag, followed by the value only when `Some`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum COption<T> {
@@ -646,6 +809,18 @@ impl<T: BorshDecode> BorshDecode for COption<T> {
     }
 }
 
+impl<T: BorshEncode> BorshEncode for COption<T> {
+    fn encode(&self, w: &mut BorshWriter) {
+        match self {
+            COption::None => w.write_bytes(&0u32.to_le_bytes()),
+            COption::Some(value) => {
+                w.write_bytes(&1u32.to_le_bytes());
+                value.encode(w)
+            }
+        }
+    }
+}
+
 macro_rules! impl_wide_int {
     ($(#[$doc:meta] $name:ident, $from:ident: $small:ty),*) => {$(
         #[$doc]
@@ -682,6 +857,11 @@ macro_rules! impl_wide_int {
             }
         }
 
+        impl BorshEncode for $name {
+            fn encode(&self, w: &mut BorshWriter) {
+                w.write_bytes(&self.0)
+            }
+        }
     )*};
 }
 
@@ -796,8 +976,10 @@ mod tests {
     use super::*;
     use std::fmt::Debug;
 
-    fn decodes<T: BorshDecode + PartialEq + Debug>(value: T, bytes: &[u8]) {
-        assert_eq!(decode_exact::<T>(bytes).unwrap(), value);
+    fn round_trip<T: BorshEncode + BorshDecode + PartialEq + Debug>(value: T, expected: &[u8]) {
+        let bytes = encode(&value);
+        assert_eq!(bytes, expected, "encoding of {value:?}");
+        assert_eq!(decode_exact::<T>(&bytes).unwrap(), value);
         // Every strict prefix must fail cleanly.
         for cut in 0..bytes.len() {
             assert!(
@@ -809,51 +991,51 @@ mod tests {
 
     #[test]
     fn primitives() {
-        decodes(true, &[1]);
-        decodes(false, &[0]);
-        decodes(0xabu8, &[0xab]);
-        decodes(0x0102u16, &[2, 1]);
-        decodes(0x01020304u32, &[4, 3, 2, 1]);
-        decodes(0x0102030405060708u64, &[8, 7, 6, 5, 4, 3, 2, 1]);
-        decodes(1u128, &{
+        round_trip(true, &[1]);
+        round_trip(false, &[0]);
+        round_trip(0xabu8, &[0xab]);
+        round_trip(0x0102u16, &[2, 1]);
+        round_trip(0x01020304u32, &[4, 3, 2, 1]);
+        round_trip(0x0102030405060708u64, &[8, 7, 6, 5, 4, 3, 2, 1]);
+        round_trip(1u128, &{
             let mut b = [0u8; 16];
             b[0] = 1;
             b
         });
-        decodes(-1i8, &[0xff]);
-        decodes(-2i16, &[0xfe, 0xff]);
-        decodes(-1i32, &[0xff; 4]);
-        decodes(i64::MIN, &[0, 0, 0, 0, 0, 0, 0, 0x80]);
-        decodes(-1i128, &[0xff; 16]);
-        decodes(1.5f32, &1.5f32.to_le_bytes());
-        decodes(-2.25f64, &(-2.25f64).to_le_bytes());
+        round_trip(-1i8, &[0xff]);
+        round_trip(-2i16, &[0xfe, 0xff]);
+        round_trip(-1i32, &[0xff; 4]);
+        round_trip(i64::MIN, &[0, 0, 0, 0, 0, 0, 0, 0x80]);
+        round_trip(-1i128, &[0xff; 16]);
+        round_trip(1.5f32, &1.5f32.to_le_bytes());
+        round_trip(-2.25f64, &(-2.25f64).to_le_bytes());
     }
 
     #[test]
     fn strings_and_collections() {
-        decodes(String::from("hé"), &[3, 0, 0, 0, b'h', 0xc3, 0xa9]);
-        decodes(String::new(), &[0, 0, 0, 0]);
-        decodes(vec![1u16, 2], &[2, 0, 0, 0, 1, 0, 2, 0]);
-        decodes(vec![7u8, 8, 9], &[3, 0, 0, 0, 7, 8, 9]);
-        decodes(Vec::<u64>::new(), &[0, 0, 0, 0]);
-        decodes([1u8, 2, 3], &[1, 2, 3]);
-        decodes([1u32, 2], &[1, 0, 0, 0, 2, 0, 0, 0]);
-        decodes(Some(5u8), &[1, 5]);
-        decodes(None::<u8>, &[0]);
-        decodes(Box::new(3u16), &[3, 0]);
-        decodes((1u8, true, String::from("a")), &[1, 1, 1, 0, 0, 0, b'a']);
-        decodes(vec![Some(vec![1u8])], &[1, 0, 0, 0, 1, 1, 0, 0, 0, 1]);
-        decodes(COption::Some(2u8), &[1, 0, 0, 0, 2]);
-        decodes(COption::<u8>::None, &[0, 0, 0, 0]);
-        decodes(Pubkey([9; 32]), &[9; 32]);
+        round_trip(String::from("hé"), &[3, 0, 0, 0, b'h', 0xc3, 0xa9]);
+        round_trip(String::new(), &[0, 0, 0, 0]);
+        round_trip(vec![1u16, 2], &[2, 0, 0, 0, 1, 0, 2, 0]);
+        round_trip(vec![7u8, 8, 9], &[3, 0, 0, 0, 7, 8, 9]);
+        round_trip(Vec::<u64>::new(), &[0, 0, 0, 0]);
+        round_trip([1u8, 2, 3], &[1, 2, 3]);
+        round_trip([1u32, 2], &[1, 0, 0, 0, 2, 0, 0, 0]);
+        round_trip(Some(5u8), &[1, 5]);
+        round_trip(None::<u8>, &[0]);
+        round_trip(Box::new(3u16), &[3, 0]);
+        round_trip((1u8, true, String::from("a")), &[1, 1, 1, 0, 0, 0, b'a']);
+        round_trip(vec![Some(vec![1u8])], &[1, 0, 0, 0, 1, 1, 0, 0, 0, 1]);
+        round_trip(COption::Some(2u8), &[1, 0, 0, 0, 2]);
+        round_trip(COption::<u8>::None, &[0, 0, 0, 0]);
+        round_trip(Pubkey([9; 32]), &[9; 32]);
     }
 
     #[test]
     fn wide_ints() {
         let mut one = [0u8; 32];
         one[0] = 1;
-        decodes(U256::from(1u128), &one);
-        decodes(I256::from(-1i128), &[0xff; 32]);
+        round_trip(U256::from(1u128), &one);
+        round_trip(I256::from(-1i128), &[0xff; 32]);
 
         assert_eq!(U256::from(12345u128).to_string(), "12345");
         assert_eq!(U256::ZERO.to_string(), "0");

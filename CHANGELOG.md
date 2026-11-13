@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 * Generated instructions name optional accounts the way programs read them: an optional account given as the program id is absent. With fewer accounts than listed, Anchor instructions read slots by position, so trailing optional accounts are absent, and Shank instructions leave every optional account out with later accounts shifted, as in Raydium AMM swaps.
 
+* Generated modules also encode: instruction data and account lists (`new`, `encode_data`, `to_account_keys`, honoring Shank's `legacyOptionalAccountsStrategy`), account and event bytes (`encode_account`, `encode_log_data`, `encode_cpi_data`, zero-copy layouts included) and every IDL type through `BorshEncode`.
+
 * Added `borsh`, a dependency-free Borsh runtime with the IDL types `Pubkey`, `COption`, `U256` and `I256`. Decoding never panics on malformed input, ignores trailing bytes like Anchor, bounds what a length prefix can preallocate and limits nesting to 128 levels.
 
 * Added the `idl` traits implemented by generated code (`IdlInstruction`, `IdlAccount`, `IdlEvent`), decoding from any `InstructionInput`: `InstructionView`, `LazyInstructionView` or `RawInstruction`.

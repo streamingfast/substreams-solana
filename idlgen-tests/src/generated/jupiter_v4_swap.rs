@@ -516,6 +516,45 @@ impl Instruction {
             Self::ClaimBonk(_) => "claim_bonk",
         }
     }
+    /// The instruction data, see each instruction's `encode_data`.
+    pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+        match self {
+            Self::Route(value) => value.encode_data(),
+            Self::WhirlpoolSwapExactOutput(value) => value.encode_data(),
+            Self::RaydiumSwapExactOutput(value) => value.encode_data(),
+            Self::RaydiumClmmSwapExactOutput(value) => value.encode_data(),
+            Self::CreateOpenOrders(value) => value.encode_data(),
+            Self::CreateOpenOrderV2(value) => value.encode_data(),
+            Self::MercurialSwap(value) => value.encode_data(),
+            Self::CykuraSwap(value) => value.encode_data(),
+            Self::SerumSwap(value) => value.encode_data(),
+            Self::SaberSwap(value) => value.encode_data(),
+            Self::SaberAddDecimals(value) => value.encode_data(),
+            Self::TokenSwap(value) => value.encode_data(),
+            Self::SenchaSwap(value) => value.encode_data(),
+            Self::StepSwap(value) => value.encode_data(),
+            Self::CropperSwap(value) => value.encode_data(),
+            Self::RaydiumSwap(value) => value.encode_data(),
+            Self::CremaSwap(value) => value.encode_data(),
+            Self::LifinitySwap(value) => value.encode_data(),
+            Self::MarinadeDeposit(value) => value.encode_data(),
+            Self::MarinadeUnstake(value) => value.encode_data(),
+            Self::AldrinSwap(value) => value.encode_data(),
+            Self::AldrinV2Swap(value) => value.encode_data(),
+            Self::WhirlpoolSwap(value) => value.encode_data(),
+            Self::InvariantSwap(value) => value.encode_data(),
+            Self::MeteoraSwap(value) => value.encode_data(),
+            Self::GoosefxSwap(value) => value.encode_data(),
+            Self::DeltafiSwap(value) => value.encode_data(),
+            Self::BalansolSwap(value) => value.encode_data(),
+            Self::MarcoPoloSwap(value) => value.encode_data(),
+            Self::DradexSwap(value) => value.encode_data(),
+            Self::LifinityV2Swap(value) => value.encode_data(),
+            Self::RaydiumClmmSwap(value) => value.encode_data(),
+            Self::PhoenixSwap(value) => value.encode_data(),
+            Self::ClaimBonk(value) => value.encode_data(),
+        }
+    }
     /// Every account address the instruction names, in order.
     pub fn account_keys(&self) -> &[::substreams_solana::borsh::Pubkey] {
         match self {
@@ -616,6 +655,10 @@ impl Account {
     pub fn name(&self) -> &'static str {
         match *self {}
     }
+    /// The account data, see each account's `encode_account`.
+    pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+        match *self {}
+    }
 }
 /// Any event of the program.
 #[derive(Debug, Clone, PartialEq)]
@@ -700,6 +743,13 @@ impl Event {
         match self {
             Self::Swap(_) => "Swap",
             Self::Fee(_) => "Fee",
+        }
+    }
+    /// The `Program data:` payload, see each event's `encode_log_data`.
+    pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+        match self {
+            Self::Swap(value) => value.encode_log_data(),
+            Self::Fee(value) => value.encode_log_data(),
         }
     }
 }
@@ -854,6 +904,12 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for AmountWithSlippage {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.amount);
+            w.write(&self.slippage_bps);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct SplitLegDeeper {
         pub percent: u8,
@@ -869,6 +925,12 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for SplitLegDeeper {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.percent);
+            w.write(&self.swap_leg);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct SplitLeg {
         pub percent: u8,
@@ -882,6 +944,12 @@ pub mod types {
                 percent: r.read()?,
                 swap_leg: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for SplitLeg {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.percent);
+            w.write(&self.swap_leg);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -909,6 +977,18 @@ pub mod types {
             }
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for Side {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            match self {
+                Self::Bid => {
+                    w.write(&0u8);
+                }
+                Self::Ask => {
+                    w.write(&1u8);
+                }
+            }
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub enum SwapLegSwap {
         PlaceholderOne,
@@ -932,6 +1012,22 @@ pub mod types {
                             variant,
                         ),
                     )
+                }
+            }
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for SwapLegSwap {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            match self {
+                Self::PlaceholderOne => {
+                    w.write(&0u8);
+                }
+                Self::PlaceholderTwo => {
+                    w.write(&1u8);
+                }
+                Self::Swap { swap: __f0 } => {
+                    w.write(&2u8);
+                    w.write(__f0);
                 }
             }
         }
@@ -971,6 +1067,24 @@ pub mod types {
             }
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for SwapLegDeeper {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            match self {
+                Self::Chain { swap_legs: __f0 } => {
+                    w.write(&0u8);
+                    w.write(__f0);
+                }
+                Self::Split { split_legs: __f0 } => {
+                    w.write(&1u8);
+                    w.write(__f0);
+                }
+                Self::Swap { swap: __f0 } => {
+                    w.write(&2u8);
+                    w.write(__f0);
+                }
+            }
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub enum SwapLeg {
         Chain { swap_legs: ::std::vec::Vec<self::SwapLegDeeper> },
@@ -1002,6 +1116,24 @@ pub mod types {
                             variant,
                         ),
                     )
+                }
+            }
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for SwapLeg {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            match self {
+                Self::Chain { swap_legs: __f0 } => {
+                    w.write(&0u8);
+                    w.write(__f0);
+                }
+                Self::Split { split_legs: __f0 } => {
+                    w.write(&1u8);
+                    w.write(__f0);
+                }
+                Self::Swap { swap: __f0 } => {
+                    w.write(&2u8);
+                    w.write(__f0);
                 }
             }
         }
@@ -1097,6 +1229,110 @@ pub mod types {
             }
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for Swap {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            match self {
+                Self::Saber => {
+                    w.write(&0u8);
+                }
+                Self::SaberAddDecimalsDeposit => {
+                    w.write(&1u8);
+                }
+                Self::SaberAddDecimalsWithdraw => {
+                    w.write(&2u8);
+                }
+                Self::TokenSwap => {
+                    w.write(&3u8);
+                }
+                Self::Sencha => {
+                    w.write(&4u8);
+                }
+                Self::Step => {
+                    w.write(&5u8);
+                }
+                Self::Cropper => {
+                    w.write(&6u8);
+                }
+                Self::Raydium => {
+                    w.write(&7u8);
+                }
+                Self::Crema { a_to_b: __f0 } => {
+                    w.write(&8u8);
+                    w.write(__f0);
+                }
+                Self::Lifinity => {
+                    w.write(&9u8);
+                }
+                Self::Mercurial => {
+                    w.write(&10u8);
+                }
+                Self::Cykura => {
+                    w.write(&11u8);
+                }
+                Self::Serum { side: __f0 } => {
+                    w.write(&12u8);
+                    w.write(__f0);
+                }
+                Self::MarinadeDeposit => {
+                    w.write(&13u8);
+                }
+                Self::MarinadeUnstake => {
+                    w.write(&14u8);
+                }
+                Self::Aldrin { side: __f0 } => {
+                    w.write(&15u8);
+                    w.write(__f0);
+                }
+                Self::AldrinV2 { side: __f0 } => {
+                    w.write(&16u8);
+                    w.write(__f0);
+                }
+                Self::Whirlpool { a_to_b: __f0 } => {
+                    w.write(&17u8);
+                    w.write(__f0);
+                }
+                Self::Invariant { x_to_y: __f0 } => {
+                    w.write(&18u8);
+                    w.write(__f0);
+                }
+                Self::Meteora => {
+                    w.write(&19u8);
+                }
+                Self::GooseFX => {
+                    w.write(&20u8);
+                }
+                Self::DeltaFi { stable: __f0 } => {
+                    w.write(&21u8);
+                    w.write(__f0);
+                }
+                Self::Balansol => {
+                    w.write(&22u8);
+                }
+                Self::MarcoPolo { x_to_y: __f0 } => {
+                    w.write(&23u8);
+                    w.write(__f0);
+                }
+                Self::Dradex { side: __f0 } => {
+                    w.write(&24u8);
+                    w.write(__f0);
+                }
+                Self::LifinityV2 => {
+                    w.write(&25u8);
+                }
+                Self::RaydiumClmm => {
+                    w.write(&26u8);
+                }
+                Self::Openbook { side: __f0 } => {
+                    w.write(&27u8);
+                    w.write(__f0);
+                }
+                Self::Phoenix { side: __f0 } => {
+                    w.write(&28u8);
+                    w.write(__f0);
+                }
+            }
+        }
+    }
 }
 /// The instructions the program accepts.
 pub mod instructions {
@@ -1151,6 +1387,17 @@ pub mod instructions {
                 destination_token_account: named.required(2)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 3] = [
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.destination_token_account),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for Route {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1170,6 +1417,40 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl Route {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            swap_leg: super::types::SwapLeg,
+            in_amount: u64,
+            quoted_out_amount: u64,
+            slippage_bps: u16,
+            platform_fee_bps: u8,
+            accounts: RouteAccounts,
+        ) -> Self {
+            Self {
+                swap_leg,
+                in_amount,
+                quoted_out_amount,
+                slippage_bps,
+                platform_fee_bps,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.swap_leg);
+            w.write(&self.in_amount);
+            w.write(&self.quoted_out_amount);
+            w.write(&self.slippage_bps);
+            w.write(&self.platform_fee_bps);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1247,6 +1528,26 @@ pub mod instructions {
                 oracle: named.required(11)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 12] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.token_authority),
+                ::core::option::Option::Some(self.whirlpool),
+                ::core::option::Option::Some(self.token_owner_account_a),
+                ::core::option::Option::Some(self.token_vault_a),
+                ::core::option::Option::Some(self.token_owner_account_b),
+                ::core::option::Option::Some(self.token_vault_b),
+                ::core::option::Option::Some(self.tick_array0),
+                ::core::option::Option::Some(self.tick_array1),
+                ::core::option::Option::Some(self.tick_array2),
+                ::core::option::Option::Some(self.oracle),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for WhirlpoolSwapExactOutput {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1265,6 +1566,37 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl WhirlpoolSwapExactOutput {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            out_amount: u64,
+            in_amount_with_slippage: super::types::AmountWithSlippage,
+            a_to_b: bool,
+            platform_fee_bps: u8,
+            accounts: WhirlpoolSwapExactOutputAccounts,
+        ) -> Self {
+            Self {
+                out_amount,
+                in_amount_with_slippage,
+                a_to_b,
+                platform_fee_bps,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.out_amount);
+            w.write(&self.in_amount_with_slippage);
+            w.write(&self.a_to_b);
+            w.write(&self.platform_fee_bps);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1357,6 +1689,32 @@ pub mod instructions {
                 user_source_owner: named.required(17)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 18] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.amm_id),
+                ::core::option::Option::Some(self.amm_authority),
+                ::core::option::Option::Some(self.amm_open_orders),
+                ::core::option::Option::Some(self.pool_coin_token_account),
+                ::core::option::Option::Some(self.pool_pc_token_account),
+                ::core::option::Option::Some(self.serum_program_id),
+                ::core::option::Option::Some(self.serum_market),
+                ::core::option::Option::Some(self.serum_bids),
+                ::core::option::Option::Some(self.serum_asks),
+                ::core::option::Option::Some(self.serum_event_queue),
+                ::core::option::Option::Some(self.serum_coin_vault_account),
+                ::core::option::Option::Some(self.serum_pc_vault_account),
+                ::core::option::Option::Some(self.serum_vault_signer),
+                ::core::option::Option::Some(self.user_source_token_account),
+                ::core::option::Option::Some(self.user_destination_token_account),
+                ::core::option::Option::Some(self.user_source_owner),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for RaydiumSwapExactOutput {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1374,6 +1732,34 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl RaydiumSwapExactOutput {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            out_amount: u64,
+            in_amount_with_slippage: super::types::AmountWithSlippage,
+            platform_fee_bps: u8,
+            accounts: RaydiumSwapExactOutputAccounts,
+        ) -> Self {
+            Self {
+                out_amount,
+                in_amount_with_slippage,
+                platform_fee_bps,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.out_amount);
+            w.write(&self.in_amount_with_slippage);
+            w.write(&self.platform_fee_bps);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1444,6 +1830,25 @@ pub mod instructions {
                 tick_array: named.required(10)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.amm_config),
+                ::core::option::Option::Some(self.pool_state),
+                ::core::option::Option::Some(self.input_token_account),
+                ::core::option::Option::Some(self.output_token_account),
+                ::core::option::Option::Some(self.input_vault),
+                ::core::option::Option::Some(self.output_vault),
+                ::core::option::Option::Some(self.observation_state),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.tick_array),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for RaydiumClmmSwapExactOutput {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1461,6 +1866,34 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl RaydiumClmmSwapExactOutput {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            out_amount: u64,
+            in_amount_with_slippage: super::types::AmountWithSlippage,
+            platform_fee_bps: u8,
+            accounts: RaydiumClmmSwapExactOutputAccounts,
+        ) -> Self {
+            Self {
+                out_amount,
+                in_amount_with_slippage,
+                platform_fee_bps,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.out_amount);
+            w.write(&self.in_amount_with_slippage);
+            w.write(&self.platform_fee_bps);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1513,6 +1946,20 @@ pub mod instructions {
                 market: named.required(5)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 6] = [
+                ::core::option::Option::Some(self.open_orders),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.dex_program),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.rent),
+                ::core::option::Option::Some(self.market),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreateOpenOrders {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1527,6 +1974,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreateOpenOrders {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CreateOpenOrdersAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1579,6 +2043,20 @@ pub mod instructions {
                 market: named.required(5)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 6] = [
+                ::core::option::Option::Some(self.open_orders),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.dex_program),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.rent),
+                ::core::option::Option::Some(self.market),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreateOpenOrderV2 {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1593,6 +2071,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreateOpenOrderV2 {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CreateOpenOrderV2Accounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1648,6 +2143,21 @@ pub mod instructions {
                 destination_token_account: named.required(6)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 7] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.swap_state),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.source_token_account),
+                ::core::option::Option::Some(self.destination_token_account),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MercurialSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1662,6 +2172,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MercurialSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MercurialSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1729,6 +2256,25 @@ pub mod instructions {
                 token_program: named.required(10)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.signer),
+                ::core::option::Option::Some(self.factory_state),
+                ::core::option::Option::Some(self.pool_state),
+                ::core::option::Option::Some(self.input_token_account),
+                ::core::option::Option::Some(self.output_token_account),
+                ::core::option::Option::Some(self.input_vault),
+                ::core::option::Option::Some(self.output_vault),
+                ::core::option::Option::Some(self.last_observation_state),
+                ::core::option::Option::Some(self.core_program),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CykuraSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1743,6 +2289,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CykuraSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CykuraSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1826,6 +2389,30 @@ pub mod instructions {
                 rent: named.required(15)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 16] = [
+                ::core::option::Option::Some(self.market_market),
+                ::core::option::Option::Some(self.market_open_orders),
+                ::core::option::Option::Some(self.market_request_queue),
+                ::core::option::Option::Some(self.market_event_queue),
+                ::core::option::Option::Some(self.market_bids),
+                ::core::option::Option::Some(self.market_asks),
+                ::core::option::Option::Some(self.market_coin_vault),
+                ::core::option::Option::Some(self.market_pc_vault),
+                ::core::option::Option::Some(self.market_vault_signer),
+                ::core::option::Option::Some(self.authority),
+                ::core::option::Option::Some(self.order_payer_token_account),
+                ::core::option::Option::Some(self.coin_wallet),
+                ::core::option::Option::Some(self.pc_wallet),
+                ::core::option::Option::Some(self.dex_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.rent),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for SerumSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1840,6 +2427,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl SerumSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: SerumSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1904,6 +2508,24 @@ pub mod instructions {
                 fees_token_account: named.required(9)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 10] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.swap),
+                ::core::option::Option::Some(self.swap_authority),
+                ::core::option::Option::Some(self.user_authority),
+                ::core::option::Option::Some(self.input_user_account),
+                ::core::option::Option::Some(self.input_token_account),
+                ::core::option::Option::Some(self.output_user_account),
+                ::core::option::Option::Some(self.output_token_account),
+                ::core::option::Option::Some(self.fees_token_account),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for SaberSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1918,6 +2540,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl SaberSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: SaberSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1976,6 +2615,22 @@ pub mod instructions {
                 token_program: named.required(7)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 8] = [
+                ::core::option::Option::Some(self.add_decimals_program),
+                ::core::option::Option::Some(self.wrapper),
+                ::core::option::Option::Some(self.wrapper_mint),
+                ::core::option::Option::Some(self.wrapper_underlying_tokens),
+                ::core::option::Option::Some(self.owner),
+                ::core::option::Option::Some(self.user_underlying_tokens),
+                ::core::option::Option::Some(self.user_wrapped_tokens),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for SaberAddDecimals {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -1990,6 +2645,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl SaberAddDecimals {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: SaberAddDecimalsAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2057,6 +2729,25 @@ pub mod instructions {
                 pool_fee: named.required(10)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
+                ::core::option::Option::Some(self.token_swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.swap),
+                ::core::option::Option::Some(self.authority),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.source),
+                ::core::option::Option::Some(self.swap_source),
+                ::core::option::Option::Some(self.swap_destination),
+                ::core::option::Option::Some(self.destination),
+                ::core::option::Option::Some(self.pool_mint),
+                ::core::option::Option::Some(self.pool_fee),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for TokenSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2071,6 +2762,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl TokenSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: TokenSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2135,6 +2843,24 @@ pub mod instructions {
                 output_fees_account: named.required(9)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 10] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.swap),
+                ::core::option::Option::Some(self.user_authority),
+                ::core::option::Option::Some(self.input_user_account),
+                ::core::option::Option::Some(self.input_token_account),
+                ::core::option::Option::Some(self.input_fees_account),
+                ::core::option::Option::Some(self.output_user_account),
+                ::core::option::Option::Some(self.output_token_account),
+                ::core::option::Option::Some(self.output_fees_account),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for SenchaSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2149,6 +2875,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl SenchaSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: SenchaSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2216,6 +2959,25 @@ pub mod instructions {
                 pool_fee: named.required(10)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
+                ::core::option::Option::Some(self.token_swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.swap),
+                ::core::option::Option::Some(self.authority),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.source),
+                ::core::option::Option::Some(self.swap_source),
+                ::core::option::Option::Some(self.swap_destination),
+                ::core::option::Option::Some(self.destination),
+                ::core::option::Option::Some(self.pool_mint),
+                ::core::option::Option::Some(self.pool_fee),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for StepSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2230,6 +2992,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl StepSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: StepSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2301,6 +3080,26 @@ pub mod instructions {
                 pool_fee: named.required(11)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 12] = [
+                ::core::option::Option::Some(self.token_swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.swap),
+                ::core::option::Option::Some(self.swap_state),
+                ::core::option::Option::Some(self.authority),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.source),
+                ::core::option::Option::Some(self.swap_source),
+                ::core::option::Option::Some(self.swap_destination),
+                ::core::option::Option::Some(self.destination),
+                ::core::option::Option::Some(self.pool_mint),
+                ::core::option::Option::Some(self.pool_fee),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CropperSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2315,6 +3114,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CropperSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CropperSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2404,6 +3220,32 @@ pub mod instructions {
                 user_source_owner: named.required(17)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 18] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.amm_id),
+                ::core::option::Option::Some(self.amm_authority),
+                ::core::option::Option::Some(self.amm_open_orders),
+                ::core::option::Option::Some(self.pool_coin_token_account),
+                ::core::option::Option::Some(self.pool_pc_token_account),
+                ::core::option::Option::Some(self.serum_program_id),
+                ::core::option::Option::Some(self.serum_market),
+                ::core::option::Option::Some(self.serum_bids),
+                ::core::option::Option::Some(self.serum_asks),
+                ::core::option::Option::Some(self.serum_event_queue),
+                ::core::option::Option::Some(self.serum_coin_vault_account),
+                ::core::option::Option::Some(self.serum_pc_vault_account),
+                ::core::option::Option::Some(self.serum_vault_signer),
+                ::core::option::Option::Some(self.user_source_token_account),
+                ::core::option::Option::Some(self.user_destination_token_account),
+                ::core::option::Option::Some(self.user_source_owner),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for RaydiumSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2418,6 +3260,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl RaydiumSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: RaydiumSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2498,6 +3357,29 @@ pub mod instructions {
                 token_program: named.required(14)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 15] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.clmm_config),
+                ::core::option::Option::Some(self.clmmpool),
+                ::core::option::Option::Some(self.token_a),
+                ::core::option::Option::Some(self.token_b),
+                ::core::option::Option::Some(self.account_a),
+                ::core::option::Option::Some(self.account_b),
+                ::core::option::Option::Some(self.token_a_vault),
+                ::core::option::Option::Some(self.token_b_vault),
+                ::core::option::Option::Some(self.tick_array_map),
+                ::core::option::Option::Some(self.owner),
+                ::core::option::Option::Some(self.partner),
+                ::core::option::Option::Some(self.partner_ata_a),
+                ::core::option::Option::Some(self.partner_ata_b),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CremaSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2512,6 +3394,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CremaSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CremaSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2589,6 +3488,28 @@ pub mod instructions {
                 config_account: named.required(13)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 14] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.authority),
+                ::core::option::Option::Some(self.amm),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.source_info),
+                ::core::option::Option::Some(self.destination_info),
+                ::core::option::Option::Some(self.swap_source),
+                ::core::option::Option::Some(self.swap_destination),
+                ::core::option::Option::Some(self.pool_mint),
+                ::core::option::Option::Some(self.fee_account),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.pyth_account),
+                ::core::option::Option::Some(self.pyth_pc_account),
+                ::core::option::Option::Some(self.config_account),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for LifinitySwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2603,6 +3524,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl LifinitySwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: LifinitySwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2689,6 +3627,31 @@ pub mod instructions {
                 rent: named.required(16)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 17] = [
+                ::core::option::Option::Some(self.marinade_finance_program),
+                ::core::option::Option::Some(self.state),
+                ::core::option::Option::Some(self.msol_mint),
+                ::core::option::Option::Some(self.liq_pool_sol_leg_pda),
+                ::core::option::Option::Some(self.liq_pool_msol_leg),
+                ::core::option::Option::Some(self.liq_pool_msol_leg_authority),
+                ::core::option::Option::Some(self.reserve_pda),
+                ::core::option::Option::Some(self.transfer_from),
+                ::core::option::Option::Some(self.mint_to),
+                ::core::option::Option::Some(self.msol_mint_authority),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.user_wsol_token_account),
+                ::core::option::Option::Some(self.temp_wsol_token_account),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.wsol_mint),
+                ::core::option::Option::Some(self.rent),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MarinadeDeposit {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2703,6 +3666,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MarinadeDeposit {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MarinadeDepositAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2774,6 +3754,26 @@ pub mod instructions {
                 user_wsol_token_account: named.required(11)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 12] = [
+                ::core::option::Option::Some(self.marinade_finance_program),
+                ::core::option::Option::Some(self.state),
+                ::core::option::Option::Some(self.msol_mint),
+                ::core::option::Option::Some(self.liq_pool_sol_leg_pda),
+                ::core::option::Option::Some(self.liq_pool_msol_leg),
+                ::core::option::Option::Some(self.treasury_msol_account),
+                ::core::option::Option::Some(self.get_msol_from),
+                ::core::option::Option::Some(self.get_msol_from_authority),
+                ::core::option::Option::Some(self.transfer_sol_to),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.user_wsol_token_account),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MarinadeUnstake {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2788,6 +3788,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MarinadeUnstake {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MarinadeUnstakeAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2855,6 +3872,25 @@ pub mod instructions {
                 token_program: named.required(10)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.pool_signer),
+                ::core::option::Option::Some(self.pool_mint),
+                ::core::option::Option::Some(self.base_token_vault),
+                ::core::option::Option::Some(self.quote_token_vault),
+                ::core::option::Option::Some(self.fee_pool_token_account),
+                ::core::option::Option::Some(self.wallet_authority),
+                ::core::option::Option::Some(self.user_base_token_account),
+                ::core::option::Option::Some(self.user_quote_token_account),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for AldrinSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2869,6 +3905,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl AldrinSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: AldrinSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2940,6 +3993,26 @@ pub mod instructions {
                 token_program: named.required(11)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 12] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.pool_signer),
+                ::core::option::Option::Some(self.pool_mint),
+                ::core::option::Option::Some(self.base_token_vault),
+                ::core::option::Option::Some(self.quote_token_vault),
+                ::core::option::Option::Some(self.fee_pool_token_account),
+                ::core::option::Option::Some(self.wallet_authority),
+                ::core::option::Option::Some(self.user_base_token_account),
+                ::core::option::Option::Some(self.user_quote_token_account),
+                ::core::option::Option::Some(self.curve),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for AldrinV2Swap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -2954,6 +4027,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl AldrinV2Swap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: AldrinV2SwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3027,6 +4117,26 @@ pub mod instructions {
                 oracle: named.required(11)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 12] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.token_authority),
+                ::core::option::Option::Some(self.whirlpool),
+                ::core::option::Option::Some(self.token_owner_account_a),
+                ::core::option::Option::Some(self.token_vault_a),
+                ::core::option::Option::Some(self.token_owner_account_b),
+                ::core::option::Option::Some(self.token_vault_b),
+                ::core::option::Option::Some(self.tick_array0),
+                ::core::option::Option::Some(self.tick_array1),
+                ::core::option::Option::Some(self.tick_array2),
+                ::core::option::Option::Some(self.oracle),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for WhirlpoolSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3041,6 +4151,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl WhirlpoolSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: WhirlpoolSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3108,6 +4235,25 @@ pub mod instructions {
                 token_program: named.required(10)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.state),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.tickmap),
+                ::core::option::Option::Some(self.account_x),
+                ::core::option::Option::Some(self.account_y),
+                ::core::option::Option::Some(self.reserve_x),
+                ::core::option::Option::Some(self.reserve_y),
+                ::core::option::Option::Some(self.owner),
+                ::core::option::Option::Some(self.program_authority),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for InvariantSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3122,6 +4268,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl InvariantSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: InvariantSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3205,6 +4368,30 @@ pub mod instructions {
                 token_program: named.required(15)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 16] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.user_source_token),
+                ::core::option::Option::Some(self.user_destination_token),
+                ::core::option::Option::Some(self.a_vault),
+                ::core::option::Option::Some(self.b_vault),
+                ::core::option::Option::Some(self.a_token_vault),
+                ::core::option::Option::Some(self.b_token_vault),
+                ::core::option::Option::Some(self.a_vault_lp_mint),
+                ::core::option::Option::Some(self.b_vault_lp_mint),
+                ::core::option::Option::Some(self.a_vault_lp),
+                ::core::option::Option::Some(self.b_vault_lp),
+                ::core::option::Option::Some(self.admin_token_fee),
+                ::core::option::Option::Some(self.user),
+                ::core::option::Option::Some(self.vault_program),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MeteoraSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3219,6 +4406,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MeteoraSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MeteoraSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3299,6 +4503,29 @@ pub mod instructions {
                 token_program: named.required(14)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 15] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.controller),
+                ::core::option::Option::Some(self.pair),
+                ::core::option::Option::Some(self.ssl_in),
+                ::core::option::Option::Some(self.ssl_out),
+                ::core::option::Option::Some(self.liability_vault_in),
+                ::core::option::Option::Some(self.swapped_liability_vault_in),
+                ::core::option::Option::Some(self.liability_vault_out),
+                ::core::option::Option::Some(self.swapped_liability_vault_out),
+                ::core::option::Option::Some(self.user_in_ata),
+                ::core::option::Option::Some(self.user_out_ata),
+                ::core::option::Option::Some(self.fee_collector_ata),
+                ::core::option::Option::Some(self.user_wallet),
+                ::core::option::Option::Some(self.fee_collector),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for GoosefxSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3313,6 +4540,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl GoosefxSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: GoosefxSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3387,6 +4631,27 @@ pub mod instructions {
                 token_program: named.required(12)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 13] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.market_config),
+                ::core::option::Option::Some(self.swap_info),
+                ::core::option::Option::Some(self.user_source_token),
+                ::core::option::Option::Some(self.user_destination_token),
+                ::core::option::Option::Some(self.swap_source_token),
+                ::core::option::Option::Some(self.swap_destination_token),
+                ::core::option::Option::Some(self.deltafi_user),
+                ::core::option::Option::Some(self.admin_destination_token),
+                ::core::option::Option::Some(self.pyth_price_base),
+                ::core::option::Option::Some(self.pyth_price_quote),
+                ::core::option::Option::Some(self.user_authority),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for DeltafiSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3401,6 +4666,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl DeltafiSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: DeltafiSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3484,6 +4766,30 @@ pub mod instructions {
                 rent: named.required(15)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 16] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.authority),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.tax_man),
+                ::core::option::Option::Some(self.bid_mint),
+                ::core::option::Option::Some(self.treasurer),
+                ::core::option::Option::Some(self.src_treasury),
+                ::core::option::Option::Some(self.src_associated_token_account),
+                ::core::option::Option::Some(self.ask_mint),
+                ::core::option::Option::Some(self.dst_treasury),
+                ::core::option::Option::Some(self.dst_associated_token_account),
+                ::core::option::Option::Some(self.dst_token_account_taxman),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.associated_token_program),
+                ::core::option::Option::Some(self.rent),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for BalansolSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3498,6 +4804,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl BalansolSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: BalansolSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3587,6 +4910,32 @@ pub mod instructions {
                 rent: named.required(17)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 18] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.state),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.token_x),
+                ::core::option::Option::Some(self.token_y),
+                ::core::option::Option::Some(self.pool_x_account),
+                ::core::option::Option::Some(self.pool_y_account),
+                ::core::option::Option::Some(self.swapper_x_account),
+                ::core::option::Option::Some(self.swapper_y_account),
+                ::core::option::Option::Some(self.swapper),
+                ::core::option::Option::Some(self.referrer_x_account),
+                ::core::option::Option::Some(self.referrer_y_account),
+                ::core::option::Option::Some(self.referrer),
+                ::core::option::Option::Some(self.program_authority),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.associated_token_program),
+                ::core::option::Option::Some(self.rent),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MarcoPoloSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3601,6 +4950,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MarcoPoloSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MarcoPoloSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3687,6 +5053,31 @@ pub mod instructions {
                 logger: named.required(16)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 17] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.pair),
+                ::core::option::Option::Some(self.market),
+                ::core::option::Option::Some(self.event_queue),
+                ::core::option::Option::Some(self.dex_user),
+                ::core::option::Option::Some(self.market_user),
+                ::core::option::Option::Some(self.bids),
+                ::core::option::Option::Some(self.asks),
+                ::core::option::Option::Some(self.t0_vault),
+                ::core::option::Option::Some(self.t1_vault),
+                ::core::option::Option::Some(self.t0_user),
+                ::core::option::Option::Some(self.t1_user),
+                ::core::option::Option::Some(self.master),
+                ::core::option::Option::Some(self.signer),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.logger),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for DradexSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3701,6 +5092,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl DradexSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: DradexSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3778,6 +5186,28 @@ pub mod instructions {
                 oracle_pc_account: named.required(13)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 14] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.authority),
+                ::core::option::Option::Some(self.amm),
+                ::core::option::Option::Some(self.user_transfer_authority),
+                ::core::option::Option::Some(self.source_info),
+                ::core::option::Option::Some(self.destination_info),
+                ::core::option::Option::Some(self.swap_source),
+                ::core::option::Option::Some(self.swap_destination),
+                ::core::option::Option::Some(self.pool_mint),
+                ::core::option::Option::Some(self.fee_account),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.oracle_main_account),
+                ::core::option::Option::Some(self.oracle_sub_account),
+                ::core::option::Option::Some(self.oracle_pc_account),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for LifinityV2Swap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3792,6 +5222,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl LifinityV2Swap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: LifinityV2SwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3859,6 +5306,25 @@ pub mod instructions {
                 tick_array: named.required(10)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.amm_config),
+                ::core::option::Option::Some(self.pool_state),
+                ::core::option::Option::Some(self.input_token_account),
+                ::core::option::Option::Some(self.output_token_account),
+                ::core::option::Option::Some(self.input_vault),
+                ::core::option::Option::Some(self.output_vault),
+                ::core::option::Option::Some(self.observation_state),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.tick_array),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for RaydiumClmmSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3873,6 +5339,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl RaydiumClmmSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: RaydiumClmmSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3934,6 +5417,23 @@ pub mod instructions {
                 token_program: named.required(8)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 9] = [
+                ::core::option::Option::Some(self.swap_program),
+                ::core::option::Option::Some(self.log_authority),
+                ::core::option::Option::Some(self.market),
+                ::core::option::Option::Some(self.trader),
+                ::core::option::Option::Some(self.base_account),
+                ::core::option::Option::Some(self.quote_account),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for PhoenixSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3948,6 +5448,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl PhoenixSwap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: PhoenixSwapAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4003,6 +5520,21 @@ pub mod instructions {
                 token_program: named.required(6)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 7] = [
+                ::core::option::Option::Some(self.open_orders),
+                ::core::option::Option::Some(self.bonk_mint),
+                ::core::option::Option::Some(self.open_orders_bonk_token_account),
+                ::core::option::Option::Some(self.market),
+                ::core::option::Option::Some(self.open_orders_owner),
+                ::core::option::Option::Some(self.claimer_token_account),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for ClaimBonk {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4017,6 +5549,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl ClaimBonk {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: ClaimBonkAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
 }
@@ -4060,9 +5609,33 @@ pub mod events {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for Swap {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.amm);
+            w.write(&self.input_mint);
+            w.write(&self.input_amount);
+            w.write(&self.output_mint);
+            w.write(&self.output_amount);
+        }
+    }
     impl ::substreams_solana::idl::IdlEvent for Swap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[81, 108, 227, 190, 205, 208, 10, 196];
+    }
+    impl Swap {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     #[derive(Debug, Clone, PartialEq)]
     pub struct Fee {
@@ -4081,8 +5654,30 @@ pub mod events {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for Fee {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.account);
+            w.write(&self.mint);
+            w.write(&self.amount);
+        }
+    }
     impl ::substreams_solana::idl::IdlEvent for Fee {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[6, 220, 131, 59, 240, 71, 51, 96];
+    }
+    impl Fee {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
 }

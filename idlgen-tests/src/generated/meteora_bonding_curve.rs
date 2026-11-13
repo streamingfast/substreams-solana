@@ -358,6 +358,33 @@ impl Instruction {
             Self::WithdrawLeftover(_) => "withdraw_leftover",
         }
     }
+    /// The instruction data, see each instruction's `encode_data`.
+    pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+        match self {
+            Self::ClaimCreatorTradingFee(value) => value.encode_data(),
+            Self::ClaimProtocolFee(value) => value.encode_data(),
+            Self::ClaimTradingFee(value) => value.encode_data(),
+            Self::CloseClaimFeeOperator(value) => value.encode_data(),
+            Self::CreateClaimFeeOperator(value) => value.encode_data(),
+            Self::CreateConfig(value) => value.encode_data(),
+            Self::CreateLocker(value) => value.encode_data(),
+            Self::CreatePartnerMetadata(value) => value.encode_data(),
+            Self::CreateVirtualPoolMetadata(value) => value.encode_data(),
+            Self::CreatorWithdrawSurplus(value) => value.encode_data(),
+            Self::InitializeVirtualPoolWithSplToken(value) => value.encode_data(),
+            Self::InitializeVirtualPoolWithToken2022(value) => value.encode_data(),
+            Self::MigrateMeteoraDamm(value) => value.encode_data(),
+            Self::MigrateMeteoraDammClaimLpToken(value) => value.encode_data(),
+            Self::MigrateMeteoraDammLockLpToken(value) => value.encode_data(),
+            Self::MigrationDammV2(value) => value.encode_data(),
+            Self::MigrationDammV2CreateMetadata(value) => value.encode_data(),
+            Self::MigrationMeteoraDammCreateMetadata(value) => value.encode_data(),
+            Self::PartnerWithdrawSurplus(value) => value.encode_data(),
+            Self::ProtocolWithdrawSurplus(value) => value.encode_data(),
+            Self::Swap(value) => value.encode_data(),
+            Self::WithdrawLeftover(value) => value.encode_data(),
+        }
+    }
     /// Every account address the instruction names, in order.
     pub fn account_keys(&self) -> &[::substreams_solana::borsh::Pubkey] {
         match self {
@@ -566,6 +593,20 @@ impl Account {
             Self::PoolConfig(_) => "PoolConfig",
             Self::VirtualPool(_) => "VirtualPool",
             Self::VirtualPoolMetadata(_) => "VirtualPoolMetadata",
+        }
+    }
+    /// The account data, see each account's `encode_account`.
+    pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+        match self {
+            Self::ClaimFeeOperator(value) => value.encode_account(),
+            Self::Config(value) => value.encode_account(),
+            Self::LockEscrow(value) => value.encode_account(),
+            Self::MeteoraDammMigrationMetadata(value) => value.encode_account(),
+            Self::MeteoraDammV2Metadata(value) => value.encode_account(),
+            Self::PartnerMetadata(value) => value.encode_account(),
+            Self::PoolConfig(value) => value.encode_account(),
+            Self::VirtualPool(value) => value.encode_account(),
+            Self::VirtualPoolMetadata(value) => value.encode_account(),
         }
     }
 }
@@ -866,6 +907,28 @@ impl Event {
             Self::EvtSwap(_) => "EvtSwap",
             Self::EvtVirtualPoolMetadata(_) => "EvtVirtualPoolMetadata",
             Self::EvtWithdrawLeftover(_) => "EvtWithdrawLeftover",
+        }
+    }
+    /// The `Program data:` payload, see each event's `encode_log_data`.
+    pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+        match self {
+            Self::EvtClaimCreatorTradingFee(value) => value.encode_log_data(),
+            Self::EvtClaimProtocolFee(value) => value.encode_log_data(),
+            Self::EvtClaimTradingFee(value) => value.encode_log_data(),
+            Self::EvtCloseClaimFeeOperator(value) => value.encode_log_data(),
+            Self::EvtCreateClaimFeeOperator(value) => value.encode_log_data(),
+            Self::EvtCreateConfig(value) => value.encode_log_data(),
+            Self::EvtCreateDammV2MigrationMetadata(value) => value.encode_log_data(),
+            Self::EvtCreateMeteoraMigrationMetadata(value) => value.encode_log_data(),
+            Self::EvtCreatorWithdrawSurplus(value) => value.encode_log_data(),
+            Self::EvtCurveComplete(value) => value.encode_log_data(),
+            Self::EvtInitializePool(value) => value.encode_log_data(),
+            Self::EvtPartnerMetadata(value) => value.encode_log_data(),
+            Self::EvtPartnerWithdrawSurplus(value) => value.encode_log_data(),
+            Self::EvtProtocolWithdrawSurplus(value) => value.encode_log_data(),
+            Self::EvtSwap(value) => value.encode_log_data(),
+            Self::EvtVirtualPoolMetadata(value) => value.encode_log_data(),
+            Self::EvtWithdrawLeftover(value) => value.encode_log_data(),
         }
     }
 }
@@ -1226,6 +1289,16 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for BaseFeeConfig {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.cliff_fee_numerator);
+            w.write(&self.period_frequency);
+            w.write(&self.reduction_factor);
+            w.write(&self.number_of_period);
+            w.write(&self.fee_scheduler_mode);
+            w.write(&self.padding_0);
+        }
+    }
     impl BaseFeeConfig {
         /// Size in bytes of the zero-copy memory layout of `BaseFeeConfig`, discriminator excluded.
         pub const SIZE: usize = 32;
@@ -1250,6 +1323,15 @@ pub mod types {
                 padding_0: __f5,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.cliff_fee_numerator);
+            w.write(&self.period_frequency);
+            w.write(&self.reduction_factor);
+            w.write(&self.number_of_period);
+            w.write(&self.fee_scheduler_mode);
+            w.write(&self.padding_0);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -1262,6 +1344,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1285,6 +1375,15 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for BaseFeeParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.cliff_fee_numerator);
+            w.write(&self.number_of_period);
+            w.write(&self.period_frequency);
+            w.write(&self.reduction_factor);
+            w.write(&self.fee_scheduler_mode);
+        }
+    }
     /// Parameter that set by the protocol
     #[derive(Debug, Clone, PartialEq)]
     pub struct ClaimFeeOperator {
@@ -1303,6 +1402,12 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for ClaimFeeOperator {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.operator);
+            w.write(&self._padding);
+        }
+    }
     impl ClaimFeeOperator {
         /// Size in bytes of the zero-copy memory layout of `ClaimFeeOperator`, discriminator excluded.
         pub const SIZE: usize = 160;
@@ -1319,6 +1424,11 @@ pub mod types {
                 _padding: __f1,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.operator);
+            w.write(&self._padding);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -1331,6 +1441,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1356,6 +1474,17 @@ pub mod types {
                 partner_fee_numerator: r.read()?,
                 padding: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for Config {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool_fees);
+            w.write(&self.activation_duration);
+            w.write(&self.vault_config_key);
+            w.write(&self.pool_creator_authority);
+            w.write(&self.activation_type);
+            w.write(&self.partner_fee_numerator);
+            w.write(&self.padding);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1408,6 +1537,29 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for ConfigParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool_fees);
+            w.write(&self.collect_fee_mode);
+            w.write(&self.migration_option);
+            w.write(&self.activation_type);
+            w.write(&self.token_type);
+            w.write(&self.token_decimal);
+            w.write(&self.partner_lp_percentage);
+            w.write(&self.partner_locked_lp_percentage);
+            w.write(&self.creator_lp_percentage);
+            w.write(&self.creator_locked_lp_percentage);
+            w.write(&self.migration_quote_threshold);
+            w.write(&self.sqrt_start_price);
+            w.write(&self.locked_vesting);
+            w.write(&self.migration_fee_option);
+            w.write(&self.token_supply);
+            w.write(&self.creator_trading_fee_percentage);
+            w.write(&self.padding_0);
+            w.write(&self.padding_1);
+            w.write(&self.curve);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct CreatePartnerMetadataParameters {
         pub padding: [u8; 96],
@@ -1425,6 +1577,14 @@ pub mod types {
                 website: r.read()?,
                 logo: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for CreatePartnerMetadataParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.padding);
+            w.write(&self.name);
+            w.write(&self.website);
+            w.write(&self.logo);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1445,6 +1605,15 @@ pub mod types {
                 website: r.read()?,
                 logo: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode
+    for CreateVirtualPoolMetadataParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.padding);
+            w.write(&self.name);
+            w.write(&self.website);
+            w.write(&self.logo);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1476,6 +1645,20 @@ pub mod types {
                 padding2: r.read()?,
                 bin_step_u128: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for DynamicFeeConfig {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.initialized);
+            w.write(&self.padding);
+            w.write(&self.max_volatility_accumulator);
+            w.write(&self.variable_fee_control);
+            w.write(&self.bin_step);
+            w.write(&self.filter_period);
+            w.write(&self.decay_period);
+            w.write(&self.reduction_factor);
+            w.write(&self.padding2);
+            w.write(&self.bin_step_u128);
         }
     }
     impl DynamicFeeConfig {
@@ -1510,6 +1693,19 @@ pub mod types {
                 bin_step_u128: __f9,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.initialized);
+            w.write(&self.padding);
+            w.write(&self.max_volatility_accumulator);
+            w.write(&self.variable_fee_control);
+            w.write(&self.bin_step);
+            w.write(&self.filter_period);
+            w.write(&self.decay_period);
+            w.write(&self.reduction_factor);
+            w.write(&self.padding2);
+            w.write(&self.bin_step_u128);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -1522,6 +1718,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1549,6 +1753,17 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for DynamicFeeParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.bin_step);
+            w.write(&self.bin_step_u128);
+            w.write(&self.filter_period);
+            w.write(&self.decay_period);
+            w.write(&self.reduction_factor);
+            w.write(&self.max_volatility_accumulator);
+            w.write(&self.variable_fee_control);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtClaimCreatorTradingFee {
         pub pool: ::substreams_solana::borsh::Pubkey,
@@ -1564,6 +1779,13 @@ pub mod types {
                 token_base_amount: r.read()?,
                 token_quote_amount: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtClaimCreatorTradingFee {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.token_base_amount);
+            w.write(&self.token_quote_amount);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1583,6 +1805,13 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtClaimProtocolFee {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.token_base_amount);
+            w.write(&self.token_quote_amount);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtClaimTradingFee {
         pub pool: ::substreams_solana::borsh::Pubkey,
@@ -1598,6 +1827,13 @@ pub mod types {
                 token_base_amount: r.read()?,
                 token_quote_amount: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtClaimTradingFee {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.token_base_amount);
+            w.write(&self.token_quote_amount);
         }
     }
     /// Close claim fee operator
@@ -1616,6 +1852,12 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtCloseClaimFeeOperator {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.claim_fee_operator);
+            w.write(&self.operator);
+        }
+    }
     /// Create claim fee operator
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtCreateClaimFeeOperator {
@@ -1626,6 +1868,11 @@ pub mod types {
             r: &mut ::substreams_solana::borsh::BorshReader<'_>,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
             ::core::result::Result::Ok(Self { operator: r.read()? })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtCreateClaimFeeOperator {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.operator);
         }
     }
     /// Create config
@@ -1688,6 +1935,34 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtCreateConfig {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.config);
+            w.write(&self.quote_mint);
+            w.write(&self.fee_claimer);
+            w.write(&self.owner);
+            w.write(&self.pool_fees);
+            w.write(&self.collect_fee_mode);
+            w.write(&self.migration_option);
+            w.write(&self.activation_type);
+            w.write(&self.token_decimal);
+            w.write(&self.token_type);
+            w.write(&self.partner_locked_lp_percentage);
+            w.write(&self.partner_lp_percentage);
+            w.write(&self.creator_locked_lp_percentage);
+            w.write(&self.creator_lp_percentage);
+            w.write(&self.swap_base_amount);
+            w.write(&self.migration_quote_threshold);
+            w.write(&self.migration_base_amount);
+            w.write(&self.sqrt_start_price);
+            w.write(&self.locked_vesting);
+            w.write(&self.migration_fee_option);
+            w.write(&self.fixed_token_supply_flag);
+            w.write(&self.pre_migration_token_supply);
+            w.write(&self.post_migration_token_supply);
+            w.write(&self.curve);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtCreateDammV2MigrationMetadata {
         pub virtual_pool: ::substreams_solana::borsh::Pubkey,
@@ -1699,6 +1974,11 @@ pub mod types {
             ::core::result::Result::Ok(Self { virtual_pool: r.read()? })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtCreateDammV2MigrationMetadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtCreateMeteoraMigrationMetadata {
         pub virtual_pool: ::substreams_solana::borsh::Pubkey,
@@ -1708,6 +1988,11 @@ pub mod types {
             r: &mut ::substreams_solana::borsh::BorshReader<'_>,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
             ::core::result::Result::Ok(Self { virtual_pool: r.read()? })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtCreateMeteoraMigrationMetadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1723,6 +2008,12 @@ pub mod types {
                 pool: r.read()?,
                 surplus_amount: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtCreatorWithdrawSurplus {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.surplus_amount);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1742,6 +2033,14 @@ pub mod types {
                 base_reserve: r.read()?,
                 quote_reserve: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtCurveComplete {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.config);
+            w.write(&self.base_reserve);
+            w.write(&self.quote_reserve);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1767,6 +2066,16 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtInitializePool {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.config);
+            w.write(&self.creator);
+            w.write(&self.base_mint);
+            w.write(&self.pool_type);
+            w.write(&self.activation_point);
+        }
+    }
     /// Create partner metadata
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtPartnerMetadata {
@@ -1781,6 +2090,12 @@ pub mod types {
                 partner_metadata: r.read()?,
                 fee_claimer: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtPartnerMetadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.partner_metadata);
+            w.write(&self.fee_claimer);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1798,6 +2113,12 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtPartnerWithdrawSurplus {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.surplus_amount);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtProtocolWithdrawSurplus {
         pub pool: ::substreams_solana::borsh::Pubkey,
@@ -1811,6 +2132,12 @@ pub mod types {
                 pool: r.read()?,
                 surplus_amount: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtProtocolWithdrawSurplus {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.surplus_amount);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1840,6 +2167,18 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtSwap {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.config);
+            w.write(&self.trade_direction);
+            w.write(&self.has_referral);
+            w.write(&self.params);
+            w.write(&self.swap_result);
+            w.write(&self.amount_in);
+            w.write(&self.current_timestamp);
+        }
+    }
     /// Create virtual pool metadata
     #[derive(Debug, Clone, PartialEq)]
     pub struct EvtVirtualPoolMetadata {
@@ -1854,6 +2193,12 @@ pub mod types {
                 virtual_pool_metadata: r.read()?,
                 virtual_pool: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for EvtVirtualPoolMetadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool_metadata);
+            w.write(&self.virtual_pool);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1873,6 +2218,13 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for EvtWithdrawLeftover {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.leftover_receiver);
+            w.write(&self.leftover_amount);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct InitializePoolParameters {
         pub name: ::std::string::String,
@@ -1890,6 +2242,13 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for InitializePoolParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.name);
+            w.write(&self.symbol);
+            w.write(&self.uri);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct LiquidityDistributionConfig {
         pub sqrt_price: u128,
@@ -1903,6 +2262,12 @@ pub mod types {
                 sqrt_price: r.read()?,
                 liquidity: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for LiquidityDistributionConfig {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.sqrt_price);
+            w.write(&self.liquidity);
         }
     }
     impl LiquidityDistributionConfig {
@@ -1921,6 +2286,11 @@ pub mod types {
                 liquidity: __f1,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.sqrt_price);
+            w.write(&self.liquidity);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -1933,6 +2303,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -1948,6 +2326,12 @@ pub mod types {
                 sqrt_price: r.read()?,
                 liquidity: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for LiquidityDistributionParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.sqrt_price);
+            w.write(&self.liquidity);
         }
     }
     /// State of lock escrow account
@@ -1980,6 +2364,19 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for LockEscrow {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pool);
+            w.write(&self.owner);
+            w.write(&self.escrow_vault);
+            w.write(&self.bump);
+            w.write(&self.total_locked_amount);
+            w.write(&self.lp_per_token);
+            w.write(&self.unclaimed_fee_pending);
+            w.write(&self.a_fee);
+            w.write(&self.b_fee);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct LockedVestingConfig {
         pub amount_per_period: u64,
@@ -2001,6 +2398,16 @@ pub mod types {
                 cliff_unlock_amount: r.read()?,
                 _padding: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for LockedVestingConfig {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.amount_per_period);
+            w.write(&self.cliff_duration_from_migration_time);
+            w.write(&self.frequency);
+            w.write(&self.number_of_period);
+            w.write(&self.cliff_unlock_amount);
+            w.write(&self._padding);
         }
     }
     impl LockedVestingConfig {
@@ -2027,6 +2434,15 @@ pub mod types {
                 _padding: __f5,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.amount_per_period);
+            w.write(&self.cliff_duration_from_migration_time);
+            w.write(&self.frequency);
+            w.write(&self.number_of_period);
+            w.write(&self.cliff_unlock_amount);
+            w.write(&self._padding);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2039,6 +2455,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2060,6 +2484,15 @@ pub mod types {
                 number_of_period: r.read()?,
                 cliff_unlock_amount: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for LockedVestingParams {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.amount_per_period);
+            w.write(&self.cliff_duration_from_migration_time);
+            w.write(&self.frequency);
+            w.write(&self.number_of_period);
+            w.write(&self.cliff_unlock_amount);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2115,6 +2548,24 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for MeteoraDammMigrationMetadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool);
+            w.write(&self.pool_creator);
+            w.write(&self.partner);
+            w.write(&self.lp_mint);
+            w.write(&self.partner_locked_lp);
+            w.write(&self.partner_lp);
+            w.write(&self.creator_locked_lp);
+            w.write(&self.creator_lp);
+            w.write(&self._padding_0);
+            w.write(&self.creator_locked_status);
+            w.write(&self.partner_locked_status);
+            w.write(&self.creator_claim_status);
+            w.write(&self.partner_claim_status);
+            w.write(&self._padding);
+        }
+    }
     impl MeteoraDammMigrationMetadata {
         /// Size in bytes of the zero-copy memory layout of `MeteoraDammMigrationMetadata`, discriminator excluded.
         pub const SIZE: usize = 272;
@@ -2155,6 +2606,23 @@ pub mod types {
                 _padding: __f13,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool);
+            w.write(&self.pool_creator);
+            w.write(&self.partner);
+            w.write(&self.lp_mint);
+            w.write(&self.partner_locked_lp);
+            w.write(&self.partner_lp);
+            w.write(&self.creator_locked_lp);
+            w.write(&self.creator_lp);
+            w.write(&self._padding_0);
+            w.write(&self.creator_locked_status);
+            w.write(&self.partner_locked_status);
+            w.write(&self.creator_claim_status);
+            w.write(&self.partner_claim_status);
+            w.write(&self._padding);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2167,6 +2635,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2192,6 +2668,14 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for MeteoraDammV2Metadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool);
+            w.write(&self.pool_creator);
+            w.write(&self.partner);
+            w.write(&self._padding);
+        }
+    }
     impl MeteoraDammV2Metadata {
         /// Size in bytes of the zero-copy memory layout of `MeteoraDammV2Metadata`, discriminator excluded.
         pub const SIZE: usize = 222;
@@ -2212,6 +2696,13 @@ pub mod types {
                 _padding: __f3,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool);
+            w.write(&self.pool_creator);
+            w.write(&self.partner);
+            w.write(&self._padding);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2224,6 +2715,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     /// Metadata for a partner.
@@ -2251,6 +2750,15 @@ pub mod types {
                 website: r.read()?,
                 logo: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for PartnerMetadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.fee_claimer);
+            w.write(&self.padding);
+            w.write(&self.name);
+            w.write(&self.website);
+            w.write(&self.logo);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2354,6 +2862,40 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for PoolConfig {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.quote_mint);
+            w.write(&self.fee_claimer);
+            w.write(&self.leftover_receiver);
+            w.write(&self.pool_fees);
+            w.write(&self.collect_fee_mode);
+            w.write(&self.migration_option);
+            w.write(&self.activation_type);
+            w.write(&self.token_decimal);
+            w.write(&self.version);
+            w.write(&self.token_type);
+            w.write(&self.quote_token_flag);
+            w.write(&self.partner_locked_lp_percentage);
+            w.write(&self.partner_lp_percentage);
+            w.write(&self.creator_locked_lp_percentage);
+            w.write(&self.creator_lp_percentage);
+            w.write(&self.migration_fee_option);
+            w.write(&self.fixed_token_supply_flag);
+            w.write(&self.creator_trading_fee_percentage);
+            w.write(&self._padding_0);
+            w.write(&self._padding_1);
+            w.write(&self.swap_base_amount);
+            w.write(&self.migration_quote_threshold);
+            w.write(&self.migration_base_threshold);
+            w.write(&self.migration_sqrt_price);
+            w.write(&self.locked_vesting_config);
+            w.write(&self.pre_migration_token_supply);
+            w.write(&self.post_migration_token_supply);
+            w.write(&self._padding_2);
+            w.write(&self.sqrt_start_price);
+            w.write(&self.curve);
+        }
+    }
     impl PoolConfig {
         /// Size in bytes of the zero-copy memory layout of `PoolConfig`, discriminator excluded.
         pub const SIZE: usize = 1040;
@@ -2431,6 +2973,41 @@ pub mod types {
                 curve: __f29,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.quote_mint);
+            w.write(&self.fee_claimer);
+            w.write(&self.leftover_receiver);
+            (&self.pool_fees).zero_copy_write(w);
+            w.write(&self.collect_fee_mode);
+            w.write(&self.migration_option);
+            w.write(&self.activation_type);
+            w.write(&self.token_decimal);
+            w.write(&self.version);
+            w.write(&self.token_type);
+            w.write(&self.quote_token_flag);
+            w.write(&self.partner_locked_lp_percentage);
+            w.write(&self.partner_lp_percentage);
+            w.write(&self.creator_locked_lp_percentage);
+            w.write(&self.creator_lp_percentage);
+            w.write(&self.migration_fee_option);
+            w.write(&self.fixed_token_supply_flag);
+            w.write(&self.creator_trading_fee_percentage);
+            w.write(&self._padding_0);
+            w.write(&self._padding_1);
+            w.write(&self.swap_base_amount);
+            w.write(&self.migration_quote_threshold);
+            w.write(&self.migration_base_threshold);
+            w.write(&self.migration_sqrt_price);
+            (&self.locked_vesting_config).zero_copy_write(w);
+            w.write(&self.pre_migration_token_supply);
+            w.write(&self.post_migration_token_supply);
+            w.write(&self._padding_2);
+            w.write(&self.sqrt_start_price);
+            for __e0 in (&self.curve).iter() {
+                (__e0).zero_copy_write(w);
+            }
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2443,6 +3020,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     /// Information regarding fee charges
@@ -2463,6 +3048,12 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for PoolFeeParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.base_fee);
+            w.write(&self.dynamic_fee);
+        }
+    }
     /// Information regarding fee charges
     #[derive(Debug, Clone, PartialEq)]
     pub struct PoolFees {
@@ -2481,6 +3072,14 @@ pub mod types {
                 protocol_trade_fee_numerator: r.read()?,
                 protocol_trade_fee_denominator: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for PoolFees {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.trade_fee_numerator);
+            w.write(&self.trade_fee_denominator);
+            w.write(&self.protocol_trade_fee_numerator);
+            w.write(&self.protocol_trade_fee_denominator);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2504,6 +3103,16 @@ pub mod types {
                 protocol_fee_percent: r.read()?,
                 referral_fee_percent: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for PoolFeesConfig {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.base_fee);
+            w.write(&self.dynamic_fee);
+            w.write(&self.padding_0);
+            w.write(&self.padding_1);
+            w.write(&self.protocol_fee_percent);
+            w.write(&self.referral_fee_percent);
         }
     }
     impl PoolFeesConfig {
@@ -2530,6 +3139,15 @@ pub mod types {
                 referral_fee_percent: __f5,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            (&self.base_fee).zero_copy_write(w);
+            (&self.dynamic_fee).zero_copy_write(w);
+            w.write(&self.padding_0);
+            w.write(&self.padding_1);
+            w.write(&self.protocol_fee_percent);
+            w.write(&self.referral_fee_percent);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2542,6 +3160,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2561,6 +3187,14 @@ pub mod types {
                 total_trading_base_fee: r.read()?,
                 total_trading_quote_fee: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for PoolMetrics {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.total_protocol_base_fee);
+            w.write(&self.total_protocol_quote_fee);
+            w.write(&self.total_trading_base_fee);
+            w.write(&self.total_trading_quote_fee);
         }
     }
     impl PoolMetrics {
@@ -2583,6 +3217,13 @@ pub mod types {
                 total_trading_quote_fee: __f3,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.total_protocol_base_fee);
+            w.write(&self.total_protocol_quote_fee);
+            w.write(&self.total_trading_base_fee);
+            w.write(&self.total_trading_quote_fee);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2595,6 +3236,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2610,6 +3259,12 @@ pub mod types {
                 amount_in: r.read()?,
                 minimum_amount_out: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for SwapParameters {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.amount_in);
+            w.write(&self.minimum_amount_out);
         }
     }
     /// Encodes all results of swapping
@@ -2636,6 +3291,16 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for SwapResult {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.actual_input_amount);
+            w.write(&self.output_amount);
+            w.write(&self.next_sqrt_price);
+            w.write(&self.trading_fee);
+            w.write(&self.protocol_fee);
+            w.write(&self.referral_fee);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct TokenSupplyParams {
         /// pre migration token supply
@@ -2651,6 +3316,12 @@ pub mod types {
                 pre_migration_token_supply: r.read()?,
                 post_migration_token_supply: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for TokenSupplyParams {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.pre_migration_token_supply);
+            w.write(&self.post_migration_token_supply);
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -2745,6 +3416,37 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for VirtualPool {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.volatility_tracker);
+            w.write(&self.config);
+            w.write(&self.creator);
+            w.write(&self.base_mint);
+            w.write(&self.base_vault);
+            w.write(&self.quote_vault);
+            w.write(&self.base_reserve);
+            w.write(&self.quote_reserve);
+            w.write(&self.protocol_base_fee);
+            w.write(&self.protocol_quote_fee);
+            w.write(&self.partner_base_fee);
+            w.write(&self.partner_quote_fee);
+            w.write(&self.sqrt_price);
+            w.write(&self.activation_point);
+            w.write(&self.pool_type);
+            w.write(&self.is_migrated);
+            w.write(&self.is_partner_withdraw_surplus);
+            w.write(&self.is_protocol_withdraw_surplus);
+            w.write(&self.migration_progress);
+            w.write(&self.is_withdraw_leftover);
+            w.write(&self.is_creator_withdraw_surplus);
+            w.write(&self._padding_0);
+            w.write(&self.metrics);
+            w.write(&self.finish_curve_timestamp);
+            w.write(&self.creator_base_fee);
+            w.write(&self.creator_quote_fee);
+            w.write(&self._padding_1);
+        }
+    }
     impl VirtualPool {
         /// Size in bytes of the zero-copy memory layout of `VirtualPool`, discriminator excluded.
         pub const SIZE: usize = 416;
@@ -2811,6 +3513,36 @@ pub mod types {
                 _padding_1: __f26,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            (&self.volatility_tracker).zero_copy_write(w);
+            w.write(&self.config);
+            w.write(&self.creator);
+            w.write(&self.base_mint);
+            w.write(&self.base_vault);
+            w.write(&self.quote_vault);
+            w.write(&self.base_reserve);
+            w.write(&self.quote_reserve);
+            w.write(&self.protocol_base_fee);
+            w.write(&self.protocol_quote_fee);
+            w.write(&self.partner_base_fee);
+            w.write(&self.partner_quote_fee);
+            w.write(&self.sqrt_price);
+            w.write(&self.activation_point);
+            w.write(&self.pool_type);
+            w.write(&self.is_migrated);
+            w.write(&self.is_partner_withdraw_surplus);
+            w.write(&self.is_protocol_withdraw_surplus);
+            w.write(&self.migration_progress);
+            w.write(&self.is_withdraw_leftover);
+            w.write(&self.is_creator_withdraw_surplus);
+            w.write(&self._padding_0);
+            (&self.metrics).zero_copy_write(w);
+            w.write(&self.finish_curve_timestamp);
+            w.write(&self.creator_base_fee);
+            w.write(&self.creator_quote_fee);
+            w.write(&self._padding_1);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2823,6 +3555,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     /// Metadata for a virtual pool.
@@ -2852,6 +3592,15 @@ pub mod types {
             })
         }
     }
+    impl ::substreams_solana::borsh::BorshEncode for VirtualPoolMetadata {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.virtual_pool);
+            w.write(&self.padding);
+            w.write(&self.name);
+            w.write(&self.website);
+            w.write(&self.logo);
+        }
+    }
     #[derive(Debug, Clone, PartialEq)]
     pub struct VolatilityTracker {
         pub last_update_timestamp: u64,
@@ -2871,6 +3620,15 @@ pub mod types {
                 volatility_accumulator: r.read()?,
                 volatility_reference: r.read()?,
             })
+        }
+    }
+    impl ::substreams_solana::borsh::BorshEncode for VolatilityTracker {
+        fn encode(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.last_update_timestamp);
+            w.write(&self.padding);
+            w.write(&self.sqrt_price_reference);
+            w.write(&self.volatility_accumulator);
+            w.write(&self.volatility_reference);
         }
     }
     impl VolatilityTracker {
@@ -2895,6 +3653,14 @@ pub mod types {
                 volatility_reference: __f4,
             })
         }
+        /// Writes the raw memory layout, zeroing the padding.
+        pub fn zero_copy_write(&self, w: &mut ::substreams_solana::borsh::BorshWriter) {
+            w.write(&self.last_update_timestamp);
+            w.write(&self.padding);
+            w.write(&self.sqrt_price_reference);
+            w.write(&self.volatility_accumulator);
+            w.write(&self.volatility_reference);
+        }
         /// Decodes the raw memory layout from the start of `data`, ignoring trailing bytes.
         pub fn decode_zero_copy(
             data: &[u8],
@@ -2907,6 +3673,14 @@ pub mod types {
                 });
             }
             Self::zero_copy_read(&mut ::substreams_solana::borsh::BorshReader::new(data))
+        }
+        /// Encodes the raw memory layout, [Self::SIZE] bytes.
+        pub fn encode_zero_copy(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::with_capacity(
+                Self::SIZE,
+            );
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
 }
@@ -3009,6 +3783,27 @@ pub mod instructions {
                 program: named.required(12)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 13] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.token_a_account),
+                ::core::option::Option::Some(self.token_b_account),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.creator),
+                ::core::option::Option::Some(self.token_base_program),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for ClaimCreatorTradingFee {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3025,6 +3820,31 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl ClaimCreatorTradingFee {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            max_base_amount: u64,
+            max_quote_amount: u64,
+            accounts: ClaimCreatorTradingFeeAccounts,
+        ) -> Self {
+            Self {
+                max_base_amount,
+                max_quote_amount,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.max_base_amount);
+            w.write(&self.max_quote_amount);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3125,6 +3945,29 @@ pub mod instructions {
                 program: named.required(14)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 15] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.token_base_account),
+                ::core::option::Option::Some(self.token_quote_account),
+                ::core::option::Option::Some(self.claim_fee_operator),
+                ::core::option::Option::Some(self.operator),
+                ::core::option::Option::Some(self.token_base_program),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for ClaimProtocolFee {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3139,6 +3982,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl ClaimProtocolFee {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: ClaimProtocolFeeAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3234,6 +4094,28 @@ pub mod instructions {
                 program: named.required(13)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 14] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.token_a_account),
+                ::core::option::Option::Some(self.token_b_account),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.fee_claimer),
+                ::core::option::Option::Some(self.token_base_program),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for ClaimTradingFee {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3250,6 +4132,31 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl ClaimTradingFee {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            max_amount_a: u64,
+            max_amount_b: u64,
+            accounts: ClaimTradingFeeAccounts,
+        ) -> Self {
+            Self {
+                max_amount_a,
+                max_amount_b,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.max_amount_a);
+            w.write(&self.max_amount_b);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3297,6 +4204,19 @@ pub mod instructions {
                 program: named.required(4)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 5] = [
+                ::core::option::Option::Some(self.claim_fee_operator),
+                ::core::option::Option::Some(self.rent_receiver),
+                ::core::option::Option::Some(self.admin),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CloseClaimFeeOperator {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3311,6 +4231,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CloseClaimFeeOperator {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CloseClaimFeeOperatorAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     /// ADMIN FUNCTIONS ///
@@ -3364,6 +4301,20 @@ pub mod instructions {
                 program: named.required(5)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 6] = [
+                ::core::option::Option::Some(self.claim_fee_operator),
+                ::core::option::Option::Some(self.operator),
+                ::core::option::Option::Some(self.admin),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreateClaimFeeOperator {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3378,6 +4329,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreateClaimFeeOperator {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CreateClaimFeeOperatorAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3439,6 +4407,22 @@ pub mod instructions {
                 program: named.required(7)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 8] = [
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.fee_claimer),
+                ::core::option::Option::Some(self.leftover_receiver),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreateConfig {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3454,6 +4438,28 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreateConfig {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            config_parameters: super::types::ConfigParameters,
+            accounts: CreateConfigAccounts,
+        ) -> Self {
+            Self {
+                config_parameters,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.config_parameters);
+            w.into_vec()
         }
     }
     /// PERMISSIONLESS FUNCTIONS ///
@@ -3539,6 +4545,28 @@ pub mod instructions {
                 system_program: named.required(13)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 14] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.base),
+                ::core::option::Option::Some(self.creator),
+                ::core::option::Option::Some(self.escrow),
+                ::core::option::Option::Some(self.escrow_token),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.locker_program),
+                ::core::option::Option::Some(self.locker_event_authority),
+                ::core::option::Option::Some(self.system_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreateLocker {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3553,6 +4581,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreateLocker {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CreateLockerAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     /// PARTNER FUNCTIONS ////
@@ -3615,6 +4660,20 @@ pub mod instructions {
                 program: named.required(5)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 6] = [
+                ::core::option::Option::Some(self.partner_metadata),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.fee_claimer),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreatePartnerMetadata {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3630,6 +4689,28 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreatePartnerMetadata {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            metadata: super::types::CreatePartnerMetadataParameters,
+            accounts: CreatePartnerMetadataAccounts,
+        ) -> Self {
+            Self {
+                metadata,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.metadata);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3692,6 +4773,21 @@ pub mod instructions {
                 program: named.required(6)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 7] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.virtual_pool_metadata),
+                ::core::option::Option::Some(self.creator),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreateVirtualPoolMetadata {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3707,6 +4803,28 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreateVirtualPoolMetadata {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            metadata: super::types::CreateVirtualPoolMetadataParameters,
+            accounts: CreateVirtualPoolMetadataAccounts,
+        ) -> Self {
+            Self {
+                metadata,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.metadata);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3779,6 +4897,24 @@ pub mod instructions {
                 program: named.required(9)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 10] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.token_quote_account),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.creator),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for CreatorWithdrawSurplus {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3793,6 +4929,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl CreatorWithdrawSurplus {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: CreatorWithdrawSurplusAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     /// POOL CREATOR FUNCTIONS ////
@@ -3890,6 +5043,30 @@ pub mod instructions {
                 program: named.required(15)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 16] = [
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.creator),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.mint_metadata),
+                ::core::option::Option::Some(self.metadata_program),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for InitializeVirtualPoolWithSplToken {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -3905,6 +5082,28 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl InitializeVirtualPoolWithSplToken {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            params: super::types::InitializePoolParameters,
+            accounts: InitializeVirtualPoolWithSplTokenAccounts,
+        ) -> Self {
+            Self {
+                params,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.params);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -3997,6 +5196,28 @@ pub mod instructions {
                 program: named.required(13)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 14] = [
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.creator),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction
     for InitializeVirtualPoolWithToken2022 {
@@ -4013,6 +5234,28 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl InitializeVirtualPoolWithToken2022 {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            params: super::types::InitializePoolParameters,
+            accounts: InitializeVirtualPoolWithToken2022Accounts,
+        ) -> Self {
+            Self {
+                params,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.params);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4150,6 +5393,45 @@ pub mod instructions {
                 system_program: named.required(30)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 31] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.migration_metadata),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.damm_config),
+                ::core::option::Option::Some(self.lp_mint),
+                ::core::option::Option::Some(self.token_a_mint),
+                ::core::option::Option::Some(self.token_b_mint),
+                ::core::option::Option::Some(self.a_vault),
+                ::core::option::Option::Some(self.b_vault),
+                ::core::option::Option::Some(self.a_token_vault),
+                ::core::option::Option::Some(self.b_token_vault),
+                ::core::option::Option::Some(self.a_vault_lp_mint),
+                ::core::option::Option::Some(self.b_vault_lp_mint),
+                ::core::option::Option::Some(self.a_vault_lp),
+                ::core::option::Option::Some(self.b_vault_lp),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.virtual_pool_lp),
+                ::core::option::Option::Some(self.protocol_token_a_fee),
+                ::core::option::Option::Some(self.protocol_token_b_fee),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.rent),
+                ::core::option::Option::Some(self.mint_metadata),
+                ::core::option::Option::Some(self.metadata_program),
+                ::core::option::Option::Some(self.amm_program),
+                ::core::option::Option::Some(self.vault_program),
+                ::core::option::Option::Some(self.token_program),
+                ::core::option::Option::Some(self.associated_token_program),
+                ::core::option::Option::Some(self.system_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MigrateMeteoraDamm {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4164,6 +5446,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MigrateMeteoraDamm {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MigrateMeteoraDammAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4229,6 +5528,23 @@ pub mod instructions {
                 token_program: named.required(8)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 9] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.migration_metadata),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.lp_mint),
+                ::core::option::Option::Some(self.source_token),
+                ::core::option::Option::Some(self.destination_token),
+                ::core::option::Option::Some(self.owner),
+                ::core::option::Option::Some(self.sender),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MigrateMeteoraDammClaimLpToken {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4243,6 +5559,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MigrateMeteoraDammClaimLpToken {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MigrateMeteoraDammClaimLpTokenAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4333,6 +5666,31 @@ pub mod instructions {
                 token_program: named.required(16)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 17] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.migration_metadata),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.lp_mint),
+                ::core::option::Option::Some(self.lock_escrow),
+                ::core::option::Option::Some(self.owner),
+                ::core::option::Option::Some(self.source_tokens),
+                ::core::option::Option::Some(self.escrow_vault),
+                ::core::option::Option::Some(self.amm_program),
+                ::core::option::Option::Some(self.a_vault),
+                ::core::option::Option::Some(self.b_vault),
+                ::core::option::Option::Some(self.a_vault_lp),
+                ::core::option::Option::Some(self.b_vault_lp),
+                ::core::option::Option::Some(self.a_vault_lp_mint),
+                ::core::option::Option::Some(self.b_vault_lp_mint),
+                ::core::option::Option::Some(self.token_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MigrateMeteoraDammLockLpToken {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4347,6 +5705,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MigrateMeteoraDammLockLpToken {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MigrateMeteoraDammLockLpTokenAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4470,6 +5845,45 @@ pub mod instructions {
                 system_program: named.required(24)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 25] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.migration_metadata),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.first_position_nft_mint),
+                ::core::option::Option::Some(self.first_position_nft_account),
+                ::core::option::Option::Some(self.first_position),
+                ::core::option::Option::Some(
+                    self.second_position_nft_mint.unwrap_or(super::PROGRAM_ID),
+                ),
+                ::core::option::Option::Some(
+                    self.second_position_nft_account.unwrap_or(super::PROGRAM_ID),
+                ),
+                ::core::option::Option::Some(
+                    self.second_position.unwrap_or(super::PROGRAM_ID),
+                ),
+                ::core::option::Option::Some(self.damm_pool_authority),
+                ::core::option::Option::Some(self.amm_program),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.token_a_vault),
+                ::core::option::Option::Some(self.token_b_vault),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.token_base_program),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.token_2022_program),
+                ::core::option::Option::Some(self.damm_event_authority),
+                ::core::option::Option::Some(self.system_program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MigrationDammV2 {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4484,6 +5898,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MigrationDammV2 {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MigrationDammV2Accounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4539,6 +5970,21 @@ pub mod instructions {
                 program: named.required(6)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 7] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.migration_metadata),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for MigrationDammV2CreateMetadata {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4553,6 +5999,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MigrationDammV2CreateMetadata {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MigrationDammV2CreateMetadataAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     /// migrate damm v1
@@ -4609,6 +6072,21 @@ pub mod instructions {
                 program: named.required(6)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 7] = [
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.migration_metadata),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.system_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction
     for MigrationMeteoraDammCreateMetadata {
@@ -4624,6 +6102,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl MigrationMeteoraDammCreateMetadata {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: MigrationMeteoraDammCreateMetadataAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4696,6 +6191,24 @@ pub mod instructions {
                 program: named.required(9)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 10] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.token_quote_account),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.fee_claimer),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for PartnerWithdrawSurplus {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4710,6 +6223,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl PartnerWithdrawSurplus {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: PartnerWithdrawSurplusAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4779,6 +6309,23 @@ pub mod instructions {
                 program: named.required(8)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 9] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.token_quote_account),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for ProtocolWithdrawSurplus {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4793,6 +6340,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl ProtocolWithdrawSurplus {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: ProtocolWithdrawSurplusAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
     /// TRADING BOTS FUNCTIONS ////
@@ -4901,6 +6465,31 @@ pub mod instructions {
                 program: named.required(14)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 15] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.pool),
+                ::core::option::Option::Some(self.input_token_account),
+                ::core::option::Option::Some(self.output_token_account),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.quote_vault),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.quote_mint),
+                ::core::option::Option::Some(self.payer),
+                ::core::option::Option::Some(self.token_base_program),
+                ::core::option::Option::Some(self.token_quote_program),
+                ::core::option::Option::Some(
+                    self.referral_token_account.unwrap_or(super::PROGRAM_ID),
+                ),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for Swap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -4916,6 +6505,28 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl Swap {
+        /// An instruction with these arguments and accounts.
+        pub fn new(
+            params: super::types::SwapParameters,
+            accounts: SwapAccounts,
+        ) -> Self {
+            Self {
+                params,
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.write(&self.params);
+            w.into_vec()
         }
     }
     #[derive(Debug, Clone, PartialEq)]
@@ -4988,6 +6599,24 @@ pub mod instructions {
                 program: named.required(9)?,
             })
         }
+        /// The account addresses in instruction order, the program id for absent optional accounts.
+        pub fn to_account_keys(
+            &self,
+        ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 10] = [
+                ::core::option::Option::Some(self.pool_authority),
+                ::core::option::Option::Some(self.config),
+                ::core::option::Option::Some(self.virtual_pool),
+                ::core::option::Option::Some(self.token_base_account),
+                ::core::option::Option::Some(self.base_vault),
+                ::core::option::Option::Some(self.base_mint),
+                ::core::option::Option::Some(self.leftover_receiver),
+                ::core::option::Option::Some(self.token_base_program),
+                ::core::option::Option::Some(self.event_authority),
+                ::core::option::Option::Some(self.program),
+            ];
+            keys.into_iter().flatten().collect()
+        }
     }
     impl ::substreams_solana::idl::IdlInstruction for WithdrawLeftover {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
@@ -5002,6 +6631,23 @@ pub mod instructions {
                     ix,
                 )?,
             })
+        }
+    }
+    impl WithdrawLeftover {
+        /// An instruction with these arguments and accounts.
+        pub fn new(accounts: WithdrawLeftoverAccounts) -> Self {
+            Self {
+                account_keys: accounts.to_account_keys(),
+                accounts: ::core::result::Result::Ok(accounts),
+            }
+        }
+        /// The instruction data: the discriminator followed by the Borsh-encoded arguments.
+        pub fn encode_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(
+                <Self as ::substreams_solana::idl::IdlInstruction>::DISCRIMINATOR,
+            );
+            w.into_vec()
         }
     }
 }
@@ -5028,13 +6674,40 @@ pub mod accounts {
             Self::decode_zero_copy(r.remaining())
         }
     }
+    impl ClaimFeeOperator {
+        /// The account data: the discriminator followed by the raw memory layout.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            self.zero_copy_write(&mut w);
+            w.into_vec()
+        }
+    }
     pub use super::types::Config;
     impl ::substreams_solana::idl::IdlAccount for Config {
         const DISCRIMINATOR: &'static [u8] = &[155, 12, 170, 224, 30, 250, 204, 130];
     }
+    impl Config {
+        /// The account data: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+    }
     pub use super::types::LockEscrow;
     impl ::substreams_solana::idl::IdlAccount for LockEscrow {
         const DISCRIMINATOR: &'static [u8] = &[190, 106, 121, 6, 200, 182, 21, 75];
+    }
+    impl LockEscrow {
+        /// The account data: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
     }
     pub use super::types::MeteoraDammMigrationMetadata;
     impl ::substreams_solana::idl::IdlAccount for MeteoraDammMigrationMetadata {
@@ -5048,6 +6721,15 @@ pub mod accounts {
                 <Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR,
             )?;
             Self::decode_zero_copy(r.remaining())
+        }
+    }
+    impl MeteoraDammMigrationMetadata {
+        /// The account data: the discriminator followed by the raw memory layout.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     pub use super::types::MeteoraDammV2Metadata;
@@ -5064,9 +6746,27 @@ pub mod accounts {
             Self::decode_zero_copy(r.remaining())
         }
     }
+    impl MeteoraDammV2Metadata {
+        /// The account data: the discriminator followed by the raw memory layout.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            self.zero_copy_write(&mut w);
+            w.into_vec()
+        }
+    }
     pub use super::types::PartnerMetadata;
     impl ::substreams_solana::idl::IdlAccount for PartnerMetadata {
         const DISCRIMINATOR: &'static [u8] = &[68, 68, 130, 19, 16, 209, 98, 156];
+    }
+    impl PartnerMetadata {
+        /// The account data: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
     }
     pub use super::types::PoolConfig;
     impl ::substreams_solana::idl::IdlAccount for PoolConfig {
@@ -5080,6 +6780,15 @@ pub mod accounts {
                 <Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR,
             )?;
             Self::decode_zero_copy(r.remaining())
+        }
+    }
+    impl PoolConfig {
+        /// The account data: the discriminator followed by the raw memory layout.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            self.zero_copy_write(&mut w);
+            w.into_vec()
         }
     }
     pub use super::types::VirtualPool;
@@ -5096,9 +6805,27 @@ pub mod accounts {
             Self::decode_zero_copy(r.remaining())
         }
     }
+    impl VirtualPool {
+        /// The account data: the discriminator followed by the raw memory layout.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            self.zero_copy_write(&mut w);
+            w.into_vec()
+        }
+    }
     pub use super::types::VirtualPoolMetadata;
     impl ::substreams_solana::idl::IdlAccount for VirtualPoolMetadata {
         const DISCRIMINATOR: &'static [u8] = &[217, 37, 82, 250, 43, 47, 228, 254];
+    }
+    impl VirtualPoolMetadata {
+        /// The account data: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_account(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlAccount>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
     }
 }
 /// The events the program emits.
@@ -5115,84 +6842,339 @@ pub mod events {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[154, 228, 215, 202, 133, 155, 214, 138];
     }
+    impl EvtClaimCreatorTradingFee {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtClaimProtocolFee;
     impl ::substreams_solana::idl::IdlEvent for EvtClaimProtocolFee {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[186, 244, 75, 251, 188, 13, 25, 33];
+    }
+    impl EvtClaimProtocolFee {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     pub use super::types::EvtClaimTradingFee;
     impl ::substreams_solana::idl::IdlEvent for EvtClaimTradingFee {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[26, 83, 117, 240, 92, 202, 112, 254];
     }
+    impl EvtClaimTradingFee {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtCloseClaimFeeOperator;
     impl ::substreams_solana::idl::IdlEvent for EvtCloseClaimFeeOperator {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[111, 39, 37, 55, 110, 216, 194, 23];
+    }
+    impl EvtCloseClaimFeeOperator {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     pub use super::types::EvtCreateClaimFeeOperator;
     impl ::substreams_solana::idl::IdlEvent for EvtCreateClaimFeeOperator {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[21, 6, 153, 120, 68, 116, 28, 177];
     }
+    impl EvtCreateClaimFeeOperator {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtCreateConfig;
     impl ::substreams_solana::idl::IdlEvent for EvtCreateConfig {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[131, 207, 180, 174, 180, 73, 165, 54];
+    }
+    impl EvtCreateConfig {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     pub use super::types::EvtCreateDammV2MigrationMetadata;
     impl ::substreams_solana::idl::IdlEvent for EvtCreateDammV2MigrationMetadata {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[103, 111, 132, 168, 140, 253, 150, 114];
     }
+    impl EvtCreateDammV2MigrationMetadata {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtCreateMeteoraMigrationMetadata;
     impl ::substreams_solana::idl::IdlEvent for EvtCreateMeteoraMigrationMetadata {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[99, 167, 133, 63, 214, 143, 175, 139];
+    }
+    impl EvtCreateMeteoraMigrationMetadata {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     pub use super::types::EvtCreatorWithdrawSurplus;
     impl ::substreams_solana::idl::IdlEvent for EvtCreatorWithdrawSurplus {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[152, 73, 21, 15, 66, 87, 53, 157];
     }
+    impl EvtCreatorWithdrawSurplus {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtCurveComplete;
     impl ::substreams_solana::idl::IdlEvent for EvtCurveComplete {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[229, 231, 86, 84, 156, 134, 75, 24];
+    }
+    impl EvtCurveComplete {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     pub use super::types::EvtInitializePool;
     impl ::substreams_solana::idl::IdlEvent for EvtInitializePool {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[228, 50, 246, 85, 203, 66, 134, 37];
     }
+    impl EvtInitializePool {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtPartnerMetadata;
     impl ::substreams_solana::idl::IdlEvent for EvtPartnerMetadata {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[200, 127, 6, 55, 13, 32, 8, 150];
+    }
+    impl EvtPartnerMetadata {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     pub use super::types::EvtPartnerWithdrawSurplus;
     impl ::substreams_solana::idl::IdlEvent for EvtPartnerWithdrawSurplus {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[195, 56, 152, 9, 232, 72, 35, 22];
     }
+    impl EvtPartnerWithdrawSurplus {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtProtocolWithdrawSurplus;
     impl ::substreams_solana::idl::IdlEvent for EvtProtocolWithdrawSurplus {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[109, 111, 28, 221, 134, 195, 230, 203];
+    }
+    impl EvtProtocolWithdrawSurplus {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
     pub use super::types::EvtSwap;
     impl ::substreams_solana::idl::IdlEvent for EvtSwap {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[27, 60, 21, 213, 138, 170, 187, 147];
     }
+    impl EvtSwap {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtVirtualPoolMetadata;
     impl ::substreams_solana::idl::IdlEvent for EvtVirtualPoolMetadata {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[188, 18, 72, 76, 195, 91, 38, 74];
     }
+    impl EvtVirtualPoolMetadata {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
+    }
     pub use super::types::EvtWithdrawLeftover;
     impl ::substreams_solana::idl::IdlEvent for EvtWithdrawLeftover {
         const PROGRAM_ID: ::substreams_solana::borsh::Pubkey = super::PROGRAM_ID;
         const DISCRIMINATOR: &'static [u8] = &[191, 189, 104, 143, 111, 156, 94, 229];
+    }
+    impl EvtWithdrawLeftover {
+        /// The `Program data:` payload: the discriminator followed by the Borsh-encoded fields.
+        pub fn encode_log_data(&self) -> ::std::vec::Vec<u8> {
+            let mut w = ::substreams_solana::borsh::BorshWriter::new();
+            w.write_bytes(<Self as ::substreams_solana::idl::IdlEvent>::DISCRIMINATOR);
+            w.write(self);
+            w.into_vec()
+        }
+        /// The instruction data of the self-CPI emitting the event (`emit_cpi!`).
+        pub fn encode_cpi_data(&self) -> ::std::vec::Vec<u8> {
+            let mut data = ::substreams_solana::idl::EVENT_IX_TAG_LE.to_vec();
+            data.extend(self.encode_log_data());
+            data
+        }
     }
 }
