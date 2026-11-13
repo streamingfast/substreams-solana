@@ -1124,7 +1124,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [Route], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct RouteAccounts {
         /// `token_program`.
@@ -1141,7 +1141,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1188,7 +1188,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [WhirlpoolSwapExactOutput], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct WhirlpoolSwapExactOutputAccounts {
         /// `swap_program`.
@@ -1228,7 +1228,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1282,7 +1282,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [RaydiumSwapExactOutput], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct RaydiumSwapExactOutputAccounts {
         /// `swap_program`.
@@ -1332,7 +1332,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1391,7 +1391,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [RaydiumClmmSwapExactOutput], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct RaydiumClmmSwapExactOutputAccounts {
         /// `swap_program`.
@@ -1426,7 +1426,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1475,7 +1475,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreateOpenOrders], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreateOpenOrdersAccounts {
         /// `open_orders` (writable).
@@ -1500,7 +1500,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1541,7 +1541,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreateOpenOrderV2], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreateOpenOrderV2Accounts {
         /// `open_orders` (writable).
@@ -1566,7 +1566,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1607,7 +1607,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MercurialSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MercurialSwapAccounts {
         /// `swap_program`.
@@ -1634,7 +1634,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1676,7 +1676,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CykuraSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CykuraSwapAccounts {
         /// `swap_program`.
@@ -1711,7 +1711,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1757,7 +1757,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [SerumSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct SerumSwapAccounts {
         /// `market.market` (writable).
@@ -1803,7 +1803,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1854,7 +1854,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [SaberSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct SaberSwapAccounts {
         /// `swap_program`.
@@ -1887,7 +1887,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -1932,7 +1932,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [SaberAddDecimals], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct SaberAddDecimalsAccounts {
         /// `add_decimals_program`.
@@ -1961,7 +1961,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2004,7 +2004,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [TokenSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct TokenSwapAccounts {
         /// `token_swap_program`.
@@ -2039,7 +2039,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2085,7 +2085,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [SenchaSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct SenchaSwapAccounts {
         /// `swap_program`.
@@ -2118,7 +2118,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2163,7 +2163,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [StepSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct StepSwapAccounts {
         /// `token_swap_program`.
@@ -2198,7 +2198,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2244,7 +2244,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CropperSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CropperSwapAccounts {
         /// `token_swap_program`.
@@ -2282,7 +2282,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2329,7 +2329,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [RaydiumSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct RaydiumSwapAccounts {
         /// `swap_program`.
@@ -2379,7 +2379,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2432,7 +2432,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CremaSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CremaSwapAccounts {
         /// `swap_program`.
@@ -2476,7 +2476,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2526,7 +2526,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [LifinitySwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct LifinitySwapAccounts {
         /// `swap_program`.
@@ -2568,7 +2568,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2617,7 +2617,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MarinadeDeposit], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MarinadeDepositAccounts {
         /// `marinade_finance_program`.
@@ -2665,7 +2665,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2717,7 +2717,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MarinadeUnstake], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MarinadeUnstakeAccounts {
         /// `marinade_finance_program`.
@@ -2755,7 +2755,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2802,7 +2802,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [AldrinSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct AldrinSwapAccounts {
         /// `swap_program`.
@@ -2837,7 +2837,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2883,7 +2883,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [AldrinV2Swap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct AldrinV2SwapAccounts {
         /// `swap_program`.
@@ -2921,7 +2921,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -2968,7 +2968,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [WhirlpoolSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct WhirlpoolSwapAccounts {
         /// `swap_program`.
@@ -3008,7 +3008,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3055,7 +3055,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [InvariantSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct InvariantSwapAccounts {
         /// `swap_program`.
@@ -3090,7 +3090,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3136,7 +3136,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MeteoraSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MeteoraSwapAccounts {
         /// `swap_program`.
@@ -3182,7 +3182,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3233,7 +3233,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [GoosefxSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct GoosefxSwapAccounts {
         /// `swap_program`.
@@ -3277,7 +3277,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3327,7 +3327,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [DeltafiSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct DeltafiSwapAccounts {
         /// `swap_program`.
@@ -3367,7 +3367,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3415,7 +3415,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [BalansolSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct BalansolSwapAccounts {
         /// `swap_program`.
@@ -3461,7 +3461,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3512,7 +3512,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MarcoPoloSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MarcoPoloSwapAccounts {
         /// `swap_program`.
@@ -3562,7 +3562,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3615,7 +3615,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [DradexSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct DradexSwapAccounts {
         /// `swap_program`.
@@ -3663,7 +3663,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3715,7 +3715,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [LifinityV2Swap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct LifinityV2SwapAccounts {
         /// `swap_program`.
@@ -3757,7 +3757,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3806,7 +3806,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [RaydiumClmmSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct RaydiumClmmSwapAccounts {
         /// `swap_program`.
@@ -3841,7 +3841,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3887,7 +3887,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [PhoenixSwap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct PhoenixSwapAccounts {
         /// `swap_program`.
@@ -3918,7 +3918,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3962,7 +3962,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [ClaimBonk], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct ClaimBonkAccounts {
         /// `open_orders`.
@@ -3989,7 +3989,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;

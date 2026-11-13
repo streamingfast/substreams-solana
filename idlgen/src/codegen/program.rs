@@ -6,7 +6,7 @@ use quote::quote;
 
 use super::names::{self, Namespace};
 use super::{borsh, bytes_literal, docs, error, result_ty, Generator, Options, Result, Scope};
-use crate::idl::{Instruction, InstructionAccount, Serialization, TypeDef};
+use crate::idl::{IdlOrigin, Instruction, InstructionAccount, Serialization, TypeDef};
 
 /// One item of a dispatch enum.
 struct Dispatch<'a> {
@@ -204,11 +204,21 @@ impl<'a> Generator<'a> {
         }
         let doc = docs(&ix_docs);
         let discriminator = bytes_literal(&ix.discriminator);
+        let (resolve, omission_doc) = match self.idl.origin {
+            IdlOrigin::Anchor => (
+                quote!(positional),
+                "An optional account is [None] when given as the program id, or past the end of a \
+                 shorter list.",
+            ),
+            IdlOrigin::Shank => (
+                quote!(resolve),
+                "An optional account is [None] when given as the program id, or left out of a \
+                 shorter list (later accounts then shift down).",
+            ),
+        };
         let accounts_doc = docs(&[
             format!("The accounts of [{ident}], in IDL order."),
-            "An optional account is [None] when given as the program id, or left out of a shorter \
-             list (later accounts then shift down)."
-                .to_string(),
+            omission_doc.to_string(),
         ]);
 
         Ok(quote! {
@@ -235,7 +245,7 @@ impl<'a> Generator<'a> {
 
                 /// Names the accounts of `ix`, ignoring extra accounts.
                 pub fn decode<I: #idl::InstructionInput + ?Sized>(ix: &I) -> #ok {
-                    let named = #idl::NamedAccounts::resolve(ix, Self::OPTIONAL)?;
+                    let named = #idl::NamedAccounts::#resolve(ix, Self::OPTIONAL)?;
                     ::core::result::Result::Ok(Self { #(#account_decodes,)* })
                 }
             }

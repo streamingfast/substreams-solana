@@ -692,7 +692,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [Swap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct SwapAccounts2 {
         /// `user` (writable, signer).
@@ -713,7 +713,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -757,7 +757,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [SwapAccounts], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct SwapAccountsAccounts {}
     impl SwapAccountsAccounts {
@@ -767,7 +767,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -805,7 +805,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [Type], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct TypeAccounts {
         /// `self` (signer).
@@ -818,7 +818,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;

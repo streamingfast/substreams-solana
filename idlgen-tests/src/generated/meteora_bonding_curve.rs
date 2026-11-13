@@ -2933,7 +2933,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [ClaimCreatorTradingFee], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct ClaimCreatorTradingFeeAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -2989,7 +2989,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3039,7 +3039,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [ClaimProtocolFee], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct ClaimProtocolFeeAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -3103,7 +3103,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3155,7 +3155,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [ClaimTradingFee], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct ClaimTradingFeeAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -3213,7 +3213,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3264,7 +3264,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CloseClaimFeeOperator], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CloseClaimFeeOperatorAccounts {
         /// `claim_fee_operator` (writable).
@@ -3285,7 +3285,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3326,7 +3326,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreateClaimFeeOperator], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreateClaimFeeOperatorAccounts {
         /// `claim_fee_operator` (writable).
@@ -3351,7 +3351,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3393,7 +3393,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreateConfig], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreateConfigAccounts {
         /// `config` (writable, signer).
@@ -3424,7 +3424,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3470,7 +3470,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreateLocker], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreateLockerAccounts {
         /// Virtual pool
@@ -3518,7 +3518,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3569,7 +3569,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreatePartnerMetadata], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreatePartnerMetadataAccounts {
         /// Partner metadata
@@ -3602,7 +3602,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3645,7 +3645,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreateVirtualPoolMetadata], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreateVirtualPoolMetadataAccounts {
         /// `virtual_pool` (writable).
@@ -3678,7 +3678,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3721,7 +3721,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [CreatorWithdrawSurplus], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct CreatorWithdrawSurplusAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -3762,7 +3762,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3809,7 +3809,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [InitializeVirtualPoolWithSplToken], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct InitializeVirtualPoolWithSplTokenAccounts {
         /// Which config the pool belongs to.
@@ -3867,7 +3867,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -3920,7 +3920,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [InitializeVirtualPoolWithToken2022], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct InitializeVirtualPoolWithToken2022Accounts {
         /// Which config the pool belongs to.
@@ -3976,7 +3976,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4027,7 +4027,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MigrateMeteoraDamm], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MigrateMeteoraDammAccounts {
         /// virtual pool
@@ -4112,7 +4112,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4178,7 +4178,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MigrateMeteoraDammClaimLpToken], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MigrateMeteoraDammClaimLpTokenAccounts {
         /// `virtual_pool`.
@@ -4213,7 +4213,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4257,7 +4257,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MigrateMeteoraDammLockLpToken], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MigrateMeteoraDammLockLpTokenAccounts {
         /// `virtual_pool`.
@@ -4309,7 +4309,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4361,7 +4361,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MigrationDammV2], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MigrationDammV2Accounts {
         /// virtual pool
@@ -4438,7 +4438,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4498,7 +4498,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MigrationDammV2CreateMetadata], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MigrationDammV2CreateMetadataAccounts {
         /// `virtual_pool`.
@@ -4525,7 +4525,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4568,7 +4568,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [MigrationMeteoraDammCreateMetadata], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct MigrationMeteoraDammCreateMetadataAccounts {
         /// `virtual_pool`.
@@ -4595,7 +4595,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4638,7 +4638,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [PartnerWithdrawSurplus], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct PartnerWithdrawSurplusAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -4679,7 +4679,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4724,7 +4724,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [ProtocolWithdrawSurplus], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct ProtocolWithdrawSurplusAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -4763,7 +4763,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4809,7 +4809,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [Swap], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct SwapAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -4879,7 +4879,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;
@@ -4930,7 +4930,7 @@ pub mod instructions {
         pub account_keys: ::std::vec::Vec<::substreams_solana::borsh::Pubkey>,
     }
     /// The accounts of [WithdrawLeftover], in IDL order.
-    /// An optional account is [None] when given as the program id, or left out of a shorter list (later accounts then shift down).
+    /// An optional account is [None] when given as the program id, or past the end of a shorter list.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct WithdrawLeftoverAccounts {
         /// `pool_authority`, always `FhVo3mqL8PW5pH5U2CN4XE33DokiyZnUwuGpH2hmHLuM`.
@@ -4971,7 +4971,7 @@ pub mod instructions {
         pub fn decode<I: ::substreams_solana::idl::InstructionInput + ?Sized>(
             ix: &I,
         ) -> ::core::result::Result<Self, ::substreams_solana::borsh::DecodeError> {
-            let named = ::substreams_solana::idl::NamedAccounts::resolve(
+            let named = ::substreams_solana::idl::NamedAccounts::positional(
                 ix,
                 Self::OPTIONAL,
             )?;

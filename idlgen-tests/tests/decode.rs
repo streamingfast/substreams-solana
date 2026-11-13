@@ -5,7 +5,7 @@ mod support;
 
 use substreams_solana::borsh::{DecodeError, Pubkey};
 use substreams_solana::idl::{RawInstruction, EVENT_IX_TAG_LE};
-use substreams_solana_idlgen::idl::{Idl, Serialization};
+use substreams_solana_idlgen::idl::{Idl, IdlOrigin, Serialization};
 use substreams_solana_idlgen_tests::generated::*;
 use support::model::{borsh_value, keys, type_def_value, zero_copy_value, Env, Rng};
 
@@ -127,7 +127,12 @@ fn every_item_of_every_fixture_decodes() {
                     // The arguments decode whatever the account count; the named
                     // accounts follow the layout rules of the IDL's origin.
                     let optional = ix.accounts.iter().filter(|a| a.optional).count();
-                    let named = optional == 1;
+                    let named = match idl.origin {
+                        // Anchor reads by position: only a trailing optional slot may be cut.
+                        IdlOrigin::Anchor => ix.accounts.last().is_some_and(|a| a.optional),
+                        // Shank shifts: one cut is unambiguous with a single optional slot.
+                        IdlOrigin::Shank => optional == 1,
+                    };
                     let error = (program.accounts_error)(&fewer);
                     assert_eq!(
                         error.is_none(),
@@ -136,7 +141,7 @@ fn every_item_of_every_fixture_decodes() {
                         program.name,
                         ix.name
                     );
-                    if optional > 1 {
+                    if idl.origin == IdlOrigin::Shank && optional > 1 {
                         assert!(matches!(error, Some(DecodeError::AmbiguousAccounts { .. })));
                     }
                 }

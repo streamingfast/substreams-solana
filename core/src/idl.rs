@@ -134,9 +134,11 @@ impl InstructionInput for RawInstruction<'_> {
 
 /// The accounts of an instruction matched to its IDL account slots.
 ///
-/// With at least as many accounts as listed, slots are positional and an optional slot holding
-/// the program id is omitted (Anchor's and Metaplex's placeholder). With fewer, the omitted
-/// optional accounts are left out and later accounts shift down, as Shank programs read them.
+/// An optional slot holding the program id is omitted (Anchor's and Metaplex's placeholder). How
+/// a list shorter than the layout is read depends on the program: [NamedAccounts::positional] for
+/// Anchor, which reads slots by position and finds the accounts past the end absent, and
+/// [NamedAccounts::resolve] for Shank programs, which leave omitted optional accounts out and
+/// shift later accounts down.
 #[derive(Debug, Clone, Copy)]
 pub struct NamedAccounts<'a, I: ?Sized> {
     ix: &'a I,
@@ -146,9 +148,13 @@ pub struct NamedAccounts<'a, I: ?Sized> {
 }
 
 impl<'a, I: InstructionInput + ?Sized> NamedAccounts<'a, I> {
-    /// Matches the accounts of `ix` to the slots of a layout, `optional[i]` telling whether slot
-    /// `i` is optional. Fails with [DecodeError::MissingAccount] when too few accounts remain even
+    /// Matches the accounts of `ix` to the slots of a Shank layout, `optional[i]` telling whether
+    /// slot `i` is optional. A shorter list leaves out every optional account, later accounts
+    /// shifting down. Fails with [DecodeError::MissingAccount] when too few accounts remain even
     /// without the optional ones, [DecodeError::AmbiguousAccounts] when only some are left out.
+    ///
+    /// Extra accounts appended to a list that left optional accounts out cannot be detected: the
+    /// slots are then read by position.
     pub fn resolve(ix: &'a I, optional: &'a [bool]) -> Result<Self, DecodeError> {
         let len = ix.accounts_len();
         let listed = optional.len();
@@ -171,6 +177,25 @@ impl<'a, I: InstructionInput + ?Sized> NamedAccounts<'a, I> {
             ix,
             optional,
             shifted,
+        })
+    }
+
+    /// Matches the accounts of `ix` to the slots of an Anchor layout, `optional[i]` telling
+    /// whether slot `i` is optional. Slots are read by position, as Anchor's `Option<T>` does:
+    /// optional slots past the end of a shorter list are absent. Fails with
+    /// [DecodeError::MissingAccount] when a required slot is past the end.
+    pub fn positional(ix: &'a I, optional: &'a [bool]) -> Result<Self, DecodeError> {
+        let len = ix.accounts_len();
+        if let Some(index) = optional.iter().skip(len).position(|&o| !o) {
+            return Err(DecodeError::MissingAccount {
+                index: len + index,
+                len,
+            });
+        }
+        Ok(Self {
+            ix,
+            optional,
+            shifted: false,
         })
     }
 

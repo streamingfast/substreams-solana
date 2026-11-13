@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 * Generated instructions decode their arguments and raw `account_keys` even when their accounts cannot be named: the named `accounts` are a `Result`.
 
-* Generated instructions name optional accounts the way programs read them: an optional account given as the program id is absent, and an instruction carrying fewer accounts than listed leaves its optional accounts out with later accounts shifted, as in Raydium AMM swaps.
+* Generated instructions name optional accounts the way programs read them: an optional account given as the program id is absent. With fewer accounts than listed, Anchor instructions read slots by position, so trailing optional accounts are absent, and Shank instructions leave every optional account out with later accounts shifted, as in Raydium AMM swaps.
 
 * Added `borsh`, a dependency-free Borsh runtime with the IDL types `Pubkey`, `COption`, `U256` and `I256`. Decoding never panics on malformed input, ignores trailing bytes like Anchor, bounds what a length prefix can preallocate and limits nesting to 128 levels.
 

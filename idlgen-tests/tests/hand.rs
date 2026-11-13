@@ -427,15 +427,17 @@ fn edge_case_swap_accounts_and_args() {
         Some(Pubkey::new(referrer))
     );
 
-    // One account short with one optional slot: the optional account is the one left out.
+    // One account short: Anchor reads slots by position, so a middle optional account cannot be
+    // left out and the last, required, slot is missing. The arguments still decode.
     let short = instructions::Swap::decode(&RawInstruction {
         accounts: &[accounts[0], accounts[1], accounts[2], accounts[4]],
         ..ix
     })
     .unwrap();
-    let named = short.accounts.unwrap();
-    assert_eq!(named.referrer, None);
-    assert_eq!(named.token_program, Pubkey::new(key(4)));
+    assert_eq!(
+        short.accounts,
+        Err(DecodeError::MissingAccount { index: 4, len: 4 })
+    );
     assert_eq!((short.amount, short.accounts2), (7, 9));
 
     // An unknown enum variant is an error naming the type.

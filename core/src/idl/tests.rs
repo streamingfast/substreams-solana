@@ -667,6 +667,43 @@ fn partial_omission_is_ambiguous() {
     assert_eq!(resolve(2, &layout), Ok(vec![Some(1), None, None, Some(2)]));
 }
 
+fn positional(len: u8, optional: &[bool]) -> Result<Vec<Option<u8>>, DecodeError> {
+    let keys: Vec<[u8; 32]> = (1..=len).map(|i| [i; 32]).collect();
+    let accounts: Vec<&[u8]> = keys.iter().map(|k| k.as_slice()).collect();
+    let ix = RawInstruction {
+        program_id: PROGRAM.as_bytes(),
+        data: &[],
+        accounts: &accounts,
+    };
+    let named = NamedAccounts::positional(&ix, optional)?;
+    (0..optional.len())
+        .map(|slot| match optional[slot] {
+            true => named.optional(slot),
+            false => named.required(slot).map(Some),
+        })
+        .map(|key| key.map(|key| key.map(|key| key.0[0])))
+        .collect()
+}
+
+#[test]
+fn anchor_reads_accounts_by_position() {
+    // Trailing optional accounts left off are absent, as Anchor's `Option<T>` reads them.
+    let layout = [false, true, true];
+    assert_eq!(positional(3, &layout), Ok(vec![Some(1), Some(2), Some(3)]));
+    assert_eq!(positional(2, &layout), Ok(vec![Some(1), Some(2), None]));
+    assert_eq!(positional(1, &layout), Ok(vec![Some(1), None, None]));
+    assert_eq!(
+        positional(0, &layout),
+        Err(DecodeError::MissingAccount { index: 0, len: 0 })
+    );
+    // A middle optional account never shifts later ones: a required slot past the end is missing.
+    let layout = [false, true, false];
+    assert_eq!(
+        positional(2, &layout),
+        Err(DecodeError::MissingAccount { index: 2, len: 2 })
+    );
+}
+
 #[test]
 fn program_id_placeholder_is_an_omitted_optional_account() {
     let first = [1u8; 32];
