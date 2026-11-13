@@ -1027,9 +1027,20 @@ pub mod instructions {
             })
         }
         /// The account addresses in instruction order, absent optional accounts left out.
+        ///
+        /// Panics when only some optional accounts are present: the program would read
+        /// later accounts in the wrong slots.
         pub fn to_account_keys(
             &self,
         ) -> ::std::vec::Vec<::substreams_solana::borsh::Pubkey> {
+            let present = [self.use_authority_record.is_some(), self.burner.is_some()]
+                .into_iter()
+                .filter(|&p| p)
+                .count();
+            assert!(
+                present == 0 || present == 2,
+                "Utilize: the optional accounts must be all present or all absent"
+            );
             let keys: [::core::option::Option<::substreams_solana::borsh::Pubkey>; 11] = [
                 ::core::option::Option::Some(self.metadata),
                 ::core::option::Option::Some(self.token_account),

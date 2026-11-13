@@ -81,6 +81,59 @@ fn absent_optional_accounts_are_encoded_as_the_idl_says() {
 }
 
 #[test]
+fn omitted_optional_accounts_decode_back() {
+    use mpl_token_metadata::{instructions::UtilizeAccounts, types::UtilizeArgs};
+    let p = |n| Pubkey::new(key(n));
+    let all = UtilizeAccounts {
+        metadata: p(0),
+        token_account: p(1),
+        mint: p(2),
+        use_authority: p(3),
+        owner: p(4),
+        token_program: p(5),
+        ata_program: p(6),
+        system_program: p(7),
+        rent: p(8),
+        use_authority_record: Some(p(9)),
+        burner: Some(p(10)),
+    };
+    let none = UtilizeAccounts {
+        use_authority_record: None,
+        burner: None,
+        ..all
+    };
+    // Shank programs read omitted accounts all or nothing: either list decodes to itself.
+    for accounts in [all, none] {
+        let keys: Vec<[u8; 32]> = accounts
+            .to_account_keys()
+            .iter()
+            .map(|k| k.to_bytes())
+            .collect();
+        let ix = mpl_token_metadata::instructions::Utilize::new(
+            UtilizeArgs { number_of_uses: 1 },
+            accounts,
+        );
+        let decoded: mpl_token_metadata::instructions::Utilize = decode(
+            mpl_token_metadata::PROGRAM_ID.as_bytes(),
+            &ix.encode_data(),
+            &keys,
+        );
+        assert_eq!(decoded, ix);
+    }
+}
+
+#[test]
+#[should_panic(expected = "all present or all absent")]
+fn partial_omission_is_rejected_by_the_encoder() {
+    let accounts = mpl_token_metadata::instructions::UtilizeAccounts {
+        burner: Some(Pubkey::new(key(1))),
+        use_authority_record: None,
+        ..Default::default()
+    };
+    let _ = accounts.to_account_keys();
+}
+
+#[test]
 fn edge_case_arguments() {
     use edge_cases::{instructions, types};
 

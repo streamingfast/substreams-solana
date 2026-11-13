@@ -181,6 +181,7 @@ impl<'a> Generator<'a> {
         let mut account_decodes = Vec::new();
         let mut account_keys = Vec::new();
         let mut optional_flags = Vec::new();
+        let mut optional_idents = Vec::new();
         // Shank's `legacyOptionalAccountsStrategy` leaves absent optional accounts out instead of
         // passing the program id.
         let omit = ix.legacy_optional_accounts_strategy;
@@ -190,6 +191,7 @@ impl<'a> Generator<'a> {
             let doc = docs(&account_docs(account));
             optional_flags.push(account.optional);
             if account.optional {
+                optional_idents.push(account_ident.clone());
                 account_decls
                     .push(quote!(#doc pub #account_ident: ::core::option::Option<#b::Pubkey>));
                 account_decodes.push(quote!(#account_ident: named.optional(#index)?));
@@ -207,17 +209,40 @@ impl<'a> Generator<'a> {
             }
         }
         let len = Literal::usize_unsuffixed(ix.accounts.len());
-        let keys_rule = if omit {
-            "The account addresses in instruction order, absent optional accounts left out."
+        // A Shank program reading omitted accounts takes all of them or none: a partial
+        // omission would shift later accounts into the wrong slots.
+        let partial_check = if omit && optional_idents.len() > 1 {
+            let message =
+                format!("{ident}: the optional accounts must be all present or all absent");
+            let total = Literal::usize_unsuffixed(optional_idents.len());
+            quote! {
+                let present = [#(self.#optional_idents.is_some()),*]
+                    .into_iter()
+                    .filter(|&p| p)
+                    .count();
+                assert!(present == 0 || present == #total, #message);
+            }
         } else {
-            "The account addresses in instruction order, the program id for absent optional accounts."
+            quote!()
+        };
+        let keys_rule = if omit && optional_idents.len() > 1 {
+            vec![
+                "The account addresses in instruction order, absent optional accounts left out.",
+                "",
+                "Panics when only some optional accounts are present: the program would read",
+                "later accounts in the wrong slots.",
+            ]
+        } else if omit {
+            vec!["The account addresses in instruction order, absent optional accounts left out."]
+        } else {
+            vec!["The account addresses in instruction order, the program id for absent optional accounts."]
         };
         let keys_body = quote! {
+            #partial_check
             let keys: [::core::option::Option<#b::Pubkey>; #len] = [#(#account_keys),*];
             keys.into_iter().flatten().collect()
         };
-        let keys_rule = docs(&[keys_rule]);
-
+        let keys_rule = docs(&keys_rule);
         let mut ix_docs = ix.docs.clone();
         if let Some(returns) = &ix.returns {
             let returns = self.rust_type(returns, Scope::Sibling, &format!("{path}.returns"))?;
